@@ -33,6 +33,7 @@ using FieldInfo = Lucene.Net.Index.FieldInfo;
 using static Lucene.Net.Search.FieldCache;
 using static Lucene.Net.Util.FieldCacheSanityChecker;
 using J2N.Collections.Generic.Extensions;
+using Microsoft.Extensions.Configuration;
 
 #if TESTFRAMEWORK_MSTEST
 using Before = Microsoft.VisualStudio.TestTools.UnitTesting.TestInitializeAttribute;
@@ -205,7 +206,65 @@ namespace Lucene.Net.Util
         }
 #endif
 #endif
+        public IConfiguration Configuration;
+        public readonly string TEST_LOCALE = ConfigurationSettings.GetProperty("tests:locale");
 
+
+#if NETSTANDARD2_1
+
+        public LuceneTestCase()
+        {
+            Configuration = new ConfigurationBuilder()
+              .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              .AddEnvironmentVariables()
+              .Build();
+
+            //TEST_LOCALE = Configuration["tests:locale"];
+        }
+        public LuceneTestCase(string[] args)
+        {
+            Configuration = new ConfigurationBuilder()
+              .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              .AddEnvironmentVariables()
+              .AddCommandLine(args)
+              .Build();
+
+            //TEST_LOCALE = Configuration["tests:locale"];
+        }
+
+#elif NET451
+
+        public LuceneTestCase()
+        {
+            Configuration = new ConfigurationBuilder()
+              //.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              //.AddEnvironmentVariables()
+              .Build();
+
+            //TEST_LOCALE = Configuration["tests:locale"];
+        }
+#else
+        public LuceneTestCase()
+        {
+            Configuration = new ConfigurationBuilder()
+              //.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              //.AddEnvironmentVariables()
+              .Build();
+
+            //TEST_LOCALE = Configuration["tests:locale"];
+        }
+#endif
+        public LuceneTestCase(IConfiguration config)
+        {
+            Configuration = config;
+            //TEST_LOCALE = Configuration["tests:locale"];
+        }
+
+
+        public void SetConfiguration(IConfiguration config)
+        {
+            //Configuration = config;
+        }
         // --------------------------------------------------------------------
         // Test groups, system properties and other annotations modifying tests
         // --------------------------------------------------------------------
@@ -274,7 +333,7 @@ namespace Lucene.Net.Util
         /// (because they are expensive, for example).
         /// </summary>
         [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-        
+
         public class SuppressCodecsAttribute : System.Attribute // LUCENENET: API looks better with this nested
         {
             /// <summary>
@@ -692,6 +751,8 @@ namespace Lucene.Net.Util
         public static IDocValuesFormatFactory DocValuesFormatFactory { get; set; } = new TestDocValuesFormatFactory();
         public static IPostingsFormatFactory PostingsFormatFactory { get; set; } = new TestPostingsFormatFactory();
 
+        public static IConfigurationSettings ConfigurationSettings { get; set; } = new MicrosoftConfigurationSettings("appsettings.json");
+        //public static IConfigurationFactory ConfigurationFactory { get; set; } = new SystemPropertiesConfigurationFactory();
 
 #if TESTFRAMEWORK_MSTEST
         private static readonly IList<string> initalizationLock = new List<string>();
@@ -699,7 +760,308 @@ namespace Lucene.Net.Util
         private static string _testName = string.Empty;
         private static Type _testClassType;
 #endif
+        public interface IConfigurationSettings
+        {
+            string GetProperty(string key);
+            string GetProperty(string key, string defaultValue);
+            bool GetPropertyAsBoolean(string key);
+            bool GetPropertyAsBoolean(string key, bool defaultValue);
+            int GetPropertyAsInt32(string key);
+            int GetPropertyAsInt32(string key, int defaultValue);
+        }
 
+
+        public abstract class DefaultConfigurationSettings : IConfigurationSettings
+        {
+            public abstract string GetProperty(string key);
+            public abstract string GetProperty(string key, string defaultValue);
+            public abstract bool GetPropertyAsBoolean(string key);
+            public abstract bool GetPropertyAsBoolean(string key, bool defaultValue);
+            public abstract int GetPropertyAsInt32(string key);
+            public abstract int GetPropertyAsInt32(string key, int defaultValue);
+            protected abstract void Initialize();
+        }
+
+        public class SystemPropertiesConfigurationSettings : DefaultConfigurationSettings
+        {
+            public override string GetProperty(string key)
+            {
+                return SystemProperties.GetProperty(key);
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process, 
+            /// with a default value if it doens't exist or the caller doesn't have 
+            /// permission to read the value.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <param name="defaultValue">The value to use if the environment variable does not exist 
+            /// or the caller doesn't have permission to read the value.</param>
+            /// <returns>The environment variable value.</returns>
+            public override string GetProperty(string key, string defaultValue)
+            {
+                return GetProperty<string>(key, defaultValue,
+                    (str) =>
+                    {
+                        return str;
+                    }
+                );
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process
+            /// as <see cref="bool"/>. If the value cannot be cast to <see cref="bool"/>, returns <c>false</c>.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <returns>The environment variable value.</returns>
+            public override bool GetPropertyAsBoolean(string key)
+            {
+                return GetPropertyAsBoolean(key, false);
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process as <see cref="bool"/>, 
+            /// with a default value if it doens't exist, the caller doesn't have permission to read the value, 
+            /// or the value cannot be cast to a <see cref="bool"/>.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <param name="defaultValue">The value to use if the environment variable does not exist,
+            /// the caller doesn't have permission to read the value, or the value cannot be cast to <see cref="bool"/>.</param>
+            /// <returns>The environment variable value.</returns>
+            public override bool GetPropertyAsBoolean(string key, bool defaultValue)
+            {
+                return GetProperty<bool>(key, defaultValue,
+                    (str) =>
+                    {
+                        bool value;
+                        return bool.TryParse(str, out value) ? value : defaultValue;
+                    }
+                );
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process
+            /// as <see cref="int"/>. If the value cannot be cast to <see cref="int"/>, returns <c>0</c>.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <returns>The environment variable value.</returns>
+            public override int GetPropertyAsInt32(string key)
+            {
+                return GetPropertyAsInt32(key, 0);
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process as <see cref="int"/>, 
+            /// with a default value if it doens't exist, the caller doesn't have permission to read the value, 
+            /// or the value cannot be cast to a <see cref="int"/>.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <param name="defaultValue">The value to use if the environment variable does not exist,
+            /// the caller doesn't have permission to read the value, or the value cannot be cast to <see cref="int"/>.</param>
+            /// <returns>The environment variable value.</returns>
+            public override int GetPropertyAsInt32(string key, int defaultValue)
+            {
+                return GetProperty<int>(key, defaultValue,
+                    (str) =>
+                    {
+                        int value;
+                        return int.TryParse(str, out value) ? value : defaultValue;
+                    }
+                );
+            }
+
+            private T GetProperty<T>(string key, T defaultValue, Func<string, T> conversionFunction)
+            {
+                string setting;
+                if (ignoreSecurityExceptions)
+                {
+                    setting = Environment.GetEnvironmentVariable(key);
+                    //try
+                    //{
+                    //    setting = Environment.GetEnvironmentVariable(key);
+                    //}
+                    //catch (SecurityException)
+                    //{
+                    //    setting = null;
+                    //}
+                }
+                else
+                {
+                    setting = Environment.GetEnvironmentVariable(key);
+                }
+
+                return string.IsNullOrEmpty(setting)
+                    ? defaultValue
+                    : conversionFunction(setting);
+            }
+
+            internal static bool ignoreSecurityExceptions = true;
+
+            protected override void Initialize()
+            {
+            }
+        }
+        public class MicrosoftConfigurationSettings : DefaultConfigurationSettings
+        {
+            public static IConfiguration config;
+            public MicrosoftConfigurationSettings(string filePath)
+            {
+                Initialize(filePath);
+            }
+            protected override void Initialize()
+            {
+            }
+
+#if NETSTANDARD2_1
+            protected void Initialize(string filePath)
+            {
+                config = new ConfigurationBuilder()
+                  .AddJsonFile(filePath, optional: true, reloadOnChange: true)
+                  .AddEnvironmentVariables()
+                  .Build();
+                Initialize();
+            }
+
+
+            protected void Initialize(string filePath, string[] args)
+            {
+                config = new ConfigurationBuilder()
+                  .AddJsonFile(filePath, optional: true, reloadOnChange: true)
+                  .AddEnvironmentVariables()
+                  .AddCommandLine(args)
+                  .Build();
+                Initialize();
+            }
+#elif NET451
+            
+            protected void Initialize(string filePath)
+            {
+                ConfigurationInternal = new ConfigurationBuilder()
+                  .Build();
+                Initialize();
+            }
+#else
+            protected void Initialize(string filePath)
+            {
+                config = new ConfigurationBuilder()
+                  .Build();
+                Initialize();
+            }
+#endif
+
+            public override string GetProperty(string key)
+            {
+                return config[key];
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process, 
+            /// with a default value if it doens't exist or the caller doesn't have 
+            /// permission to read the value.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <param name="defaultValue">The value to use if the environment variable does not exist 
+            /// or the caller doesn't have permission to read the value.</param>
+            /// <returns>The environment variable value.</returns>
+            public override string GetProperty(string key, string defaultValue)
+            {
+                return GetProperty<string>(key, defaultValue,
+                    (str) =>
+                    {
+                        return str;
+                    }
+                );
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process
+            /// as <see cref="bool"/>. If the value cannot be cast to <see cref="bool"/>, returns <c>false</c>.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <returns>The environment variable value.</returns>
+            public override bool GetPropertyAsBoolean(string key)
+            {
+                return GetPropertyAsBoolean(key, false);
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process as <see cref="bool"/>, 
+            /// with a default value if it doens't exist, the caller doesn't have permission to read the value, 
+            /// or the value cannot be cast to a <see cref="bool"/>.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <param name="defaultValue">The value to use if the environment variable does not exist,
+            /// the caller doesn't have permission to read the value, or the value cannot be cast to <see cref="bool"/>.</param>
+            /// <returns>The environment variable value.</returns>
+            public override bool GetPropertyAsBoolean(string key, bool defaultValue)
+            {
+                return GetProperty<bool>(key, defaultValue,
+                    (str) =>
+                    {
+                        bool value;
+                        return bool.TryParse(str, out value) ? value : defaultValue;
+                    }
+                );
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process
+            /// as <see cref="int"/>. If the value cannot be cast to <see cref="int"/>, returns <c>0</c>.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <returns>The environment variable value.</returns>
+            public override int GetPropertyAsInt32(string key)
+            {
+                return GetPropertyAsInt32(key, 0);
+            }
+
+            /// <summary>
+            /// Retrieves the value of an environment variable from the current process as <see cref="int"/>, 
+            /// with a default value if it doens't exist, the caller doesn't have permission to read the value, 
+            /// or the value cannot be cast to a <see cref="int"/>.
+            /// </summary>
+            /// <param name="key">The name of the environment variable.</param>
+            /// <param name="defaultValue">The value to use if the environment variable does not exist,
+            /// the caller doesn't have permission to read the value, or the value cannot be cast to <see cref="int"/>.</param>
+            /// <returns>The environment variable value.</returns>
+            public override int GetPropertyAsInt32(string key, int defaultValue)
+            {
+                return GetProperty<int>(key, defaultValue,
+                    (str) =>
+                    {
+                        int value;
+                        return int.TryParse(str, out value) ? value : defaultValue;
+                    }
+                );
+            }
+
+            private T GetProperty<T>(string key, T defaultValue, Func<string, T> conversionFunction)
+            {
+                string setting;
+                if (ignoreSecurityExceptions)
+                {
+                    setting = config[key];
+                    //try
+                    //{
+                    //    setting = Environment.GetEnvironmentVariable(key);
+                    //}
+                    //catch (SecurityException)
+                    //{
+                    //    setting = null;
+                    //}
+                }
+                else
+                {
+                    setting = config[key];
+                }
+
+                return string.IsNullOrEmpty(setting)
+                    ? defaultValue
+                    : conversionFunction(setting);
+            }
+
+            internal static bool ignoreSecurityExceptions = true;
+        }
 
 #if TESTFRAMEWORK_MSTEST
         /// <summary>
@@ -1755,7 +2117,7 @@ namespace Lucene.Net.Util
 
         public static bool DefaultCodecSupportsDocValues
         {
-            get{ return !Codec.Default.Name.Equals("Lucene3x", StringComparison.Ordinal); }
+            get { return !Codec.Default.Name.Equals("Lucene3x", StringComparison.Ordinal); }
         }
 
         private static Directory NewFSDirectoryImpl(Type clazz, DirectoryInfo file)
@@ -2078,7 +2440,7 @@ namespace Lucene.Net.Util
                 TaskScheduler ex;
                 if (random.NextBoolean())
                 {
-                ex = null;
+                    ex = null;
                 }
                 else
                 {

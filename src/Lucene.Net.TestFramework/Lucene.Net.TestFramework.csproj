@@ -36,12 +36,14 @@
     <NoWarn>$(NoWarn);1591;1573</NoWarn>
 
     <DefineConstants>$(DefineConstants);TESTFRAMEWORK_NUNIT</DefineConstants>
+
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="..\Lucene.Net.TestFramework.NUnit\Support\TestFramework\Assert.cs" Link="Support\TestFramework\Assert.cs" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Remove="Util\europarl.lines.txt.gz" />
     <EmbeddedResource Include="Util\europarl.lines.txt.gz" />
@@ -63,6 +65,9 @@
     <PackageReference Include="System.Diagnostics.TraceSource" Version="$(SystemDiagnosticsTraceSourcePackageVersion)" />
     <PackageReference Include="System.Net.Primitives" Version="$(SystemNetPrimitivesPackageVersion)" />
     <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadPackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.1.2" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
@@ -71,19 +76,23 @@
     <Reference Include="System.ServiceModel" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.0.0" />
+
   </ItemGroup>
 
   <ItemGroup>
     <!--  Note that some of the APIs we use to test Lucene.Net are internal because they are only meant to
           make porting tests from Java easier. This means that every Lucene.Net test project requires
           InternalsVisibleTo, now and in the future to keep these APIs from public view. -->
-    
+
     <InternalsVisibleTo Include="Lucene.Net.Tests._A-D" />
     <InternalsVisibleTo Include="Lucene.Net.Tests._E-I" />
     <InternalsVisibleTo Include="Lucene.Net.Tests._J-S" />
     <InternalsVisibleTo Include="Lucene.Net.Tests._T-U" />
     <InternalsVisibleTo Include="Lucene.Net.Tests._U-Z" />
-    
+
     <InternalsVisibleTo Include="Lucene.Net.Tests.Analysis.Common" />
     <InternalsVisibleTo Include="Lucene.Net.Tests.Analysis.Kuromoji" />
     <InternalsVisibleTo Include="Lucene.Net.Tests.Analysis.Morfologik" />
@@ -91,7 +100,7 @@
     <InternalsVisibleTo Include="Lucene.Net.Tests.Analysis.Phonetic" />
     <InternalsVisibleTo Include="Lucene.Net.Tests.Analysis.SmartCn" />
     <InternalsVisibleTo Include="Lucene.Net.Tests.Analysis.Stempel" />
-    
+
     <InternalsVisibleTo Include="Lucene.Net.Tests.Benchmark" />
     <InternalsVisibleTo Include="Lucene.Net.Tests.Classification" />
     <InternalsVisibleTo Include="Lucene.Net.Tests.Cli" />
@@ -112,6 +121,25 @@
     <InternalsVisibleTo Include="Lucene.Net.Tests.Spatial" />
     <InternalsVisibleTo Include="Lucene.Net.Tests.Suggest" />
     <InternalsVisibleTo Include="Lucene.Net.Tests.TestFramework" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
