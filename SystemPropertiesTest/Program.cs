@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using Lucene.Net.Configuration;
 using Lucene.Net.Util;
 using Microsoft.Extensions.Configuration;
 
@@ -8,11 +10,11 @@ namespace SystemPropertiesTest
     {
         public static void Main(string[] args)
         {
-  //          IConfiguration Configuration = new ConfigurationBuilder()
-  //.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-  //.AddEnvironmentVariables()
-  //.AddCommandLine(args)
-  //.Build();
+            //          IConfiguration Configuration = new ConfigurationBuilder()
+            //.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+            //.AddEnvironmentVariables()
+            //.AddCommandLine(args)
+            //.Build();
 
             string version = SystemProperties.GetProperty("windir", null);
 
@@ -28,8 +30,8 @@ namespace SystemPropertiesTest
             //string testTimeZone = Configuration["tests:timezone"];
 
             TestSystemProperties t = new TestSystemProperties(args);
-
-            Lucene.Net.Util.LuceneTestCase.IConfigurationSettings config = new Lucene.Net.Util.LuceneTestCase.MicrosoftConfigurationSettings("appsettings.json");
+            
+            IConfigurationSettingsFactory config = new MicrosoftConfigurationSettingsFactory("appsettings.json");
 
             Console.WriteLine($"lucene:version: {config.GetProperty("lucene:version") } \n");
             Console.WriteLine($"windir: {config.GetProperty("windir") } \n");
@@ -42,8 +44,8 @@ namespace SystemPropertiesTest
             //               $"lucene.version: {luceneversion} \n" +
             //               $"Default Log Level: {defaultLogLevel}");
 
-        }
 
+        }
     }
 
     public class TestSystemProperties : LuceneTestCase

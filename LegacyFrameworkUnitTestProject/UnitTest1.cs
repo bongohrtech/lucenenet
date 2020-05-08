@@ -1,22 +1,22 @@
+﻿using System;
+using Lucene.Net.Codecs;
 using Lucene.Net.Configuration;
 using Lucene.Net.Util;
-using NUnit.Framework;
-using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Lucene.Net.Tests.SystemProperties
+namespace LegacyFrameworkUnitTestProject
 {
-
-    [TestFixture]
-    public class Tests : LuceneTestCase
+    [TestClass]
+    public class UnitTest1 : LuceneTestCase
     {
-        [OneTimeSetUp]
-        public void Intitialise()
+        [TestInitialize]
+        public void Setup()
         {
             //ConfigurationFactory = new MicrosoftConfigurationFactory("appsettings.json");
             try
             {
                 // Setup the factories
-                ConfigurationSettings.SetConfigFactory(new MicrosoftConfigurationSettingsFactory("appsettings.json"));
+                ConfigurationSettings.SetConfigFactory(new SystemPropertiesConfigurationSettingsFactory());
             }
             catch (Exception ex)
             {
@@ -25,17 +25,10 @@ namespace Lucene.Net.Tests.SystemProperties
             }
         }
 
-        [Test]
-        public virtual void Test1()
-        {
-            Assert.AreEqual(TEST_LOCALE, "fr-FR");
-            Assert.Pass();
-        }
-        [Test]
-        public virtual void Test2()
+        [TestMethod]
+        public virtual void LegacyTest()
         {
             Assert.AreEqual(ConfigurationSettingsFactory.GetProperty("windir"), "C:\\WINDOWS");
-            Assert.Pass();
         }
     }
 }
