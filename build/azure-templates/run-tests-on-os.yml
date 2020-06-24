@@ -58,11 +58,11 @@ steps:
     version: 3.1.100
   condition: and(succeeded(), contains('${{ parameters.framework }}', 'netcoreapp3.'))
 
-- task: DownloadBuildArtifacts@0
+- task: DownloadPipelineArtifact@0
   displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }}'
   inputs:
     artifactName: ${{ parameters.binaryArtifactName }}
-    downloadPath: '$(System.DefaultWorkingDirectory)'
+    downloadPath: '$(System.ArtifactStagingDirectory)'
     itemPattern: '**/${{ parameters.framework }}/*.*'
 
 #- template: 'show-all-files.yml' # Uncomment for debugging
@@ -204,10 +204,10 @@ steps:
 
 #- template: 'show-all-files.yml' # Uncomment for debugging
 
-- task: PublishBuildArtifacts@1
+- task: PublishPipelineArtifact@1
   displayName: 'Publish Artifact: ${{ parameters.testResultsArtifactName }}'
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}'
+    targetPath: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}'
     ArtifactName: '${{ parameters.testResultsArtifactName }}'
   condition: succeededOrFailed()
 
