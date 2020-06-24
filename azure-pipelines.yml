@@ -144,13 +144,12 @@ stages:
           Version.props
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
       condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
-
-   
+         
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Artifact: $(VersionArtifactName)'
       inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
-        ArtifactName: '$(VersionArtifactName)'
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        artifact: '$(VersionArtifactName)'
+        publishLocation: 'pipeline'
     # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
     - task: CopyFiles@2
@@ -163,21 +162,24 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
-        ArtifactName: '$(BinaryArtifactName)'
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+        artifact: '$(BinaryArtifactName)'
+        publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(NuGetArtifactName)'
       inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
-        ArtifactName: '$(NuGetArtifactName)'
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+        artifact: '$(NuGetArtifactName)'
+        publishLocation: 'pipeline'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(DebugArtifactName)'
       inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
-        ArtifactName: '$(DebugArtifactName)'
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
+        artifact: '$(DebugArtifactName)'
+        publishLocation: 'pipeline'
 
   - job: Docs
     condition: and(succeeded(), eq(variables['GenerateDocs'], 'true'))

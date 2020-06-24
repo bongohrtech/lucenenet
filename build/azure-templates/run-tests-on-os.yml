@@ -52,6 +52,19 @@ steps:
     EnsureNotNullOrEmpty('${{ parameters.maximumAllowedFailures }}', 'maximumAllowedFailures')
   displayName: 'Validate Template Parameters'
 
+
+task: DownloadPipelineArtifact@2
+  inputs:
+    artifactName: ${{ parameters.binaryArtifactName }}
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    
+- task: ExtractFiles@1
+  displayName: 'Extract files from ${(System.ArtifactStagingDirectory)}/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/${{ parameters.publishedArtifactZipFileName }}'
+  inputs:
+    archiveFilePatterns: '$(System.ArtifactStagingDirectory)/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/${{ parameters.publishedArtifactZipFileName }}'
+    destinationFolder: '$(System.DefaultWorkingDirectory)/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/'
+    cleanDestinationFolder: false
+
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk 3.1.100'
   inputs:
@@ -67,7 +80,7 @@ steps:
 #- template: 'show-all-files.yml' # Uncomment for debugging
 
 - task: ExtractFiles@1
-  displayName: 'Extract files from $(System.ArtifactStagingDirectory)/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/${{ parameters.publishedArtifactZipFileName }}'
+  displayName: 'Extract files from ${(System.ArtifactStagingDirectory)}/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/${{ parameters.publishedArtifactZipFileName }}'
   inputs:
     archiveFilePatterns: '$(System.ArtifactStagingDirectory)/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/${{ parameters.publishedArtifactZipFileName }}'
     destinationFolder: '$(System.DefaultWorkingDirectory)/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/'
