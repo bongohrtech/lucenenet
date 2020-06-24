@@ -122,6 +122,7 @@ stages:
         rootFolderOrFile: '$(PublishTempDirectory)/netcoreapp3.1'
         includeRootFolder: false
         archiveFile: '$(PublishDirectory)/netcoreapp3.1/$(PublishedArtifactZipFileName)'
+        archiveType: 'zip'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
     - task: ArchiveFiles@2
@@ -129,6 +130,7 @@ stages:
       inputs:
         rootFolderOrFile: '$(PublishTempDirectory)/netcoreapp2.2'
         includeRootFolder: false
+        archiveType: 'zip'
         archiveFile: '$(PublishDirectory)/netcoreapp2.2/$(PublishedArtifactZipFileName)'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
@@ -138,6 +140,7 @@ stages:
         rootFolderOrFile: '$(PublishTempDirectory)/net48'
         includeRootFolder: false
         archiveFile: '$(PublishDirectory)/net48/$(PublishedArtifactZipFileName)'
+        archiveType: 'zip'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
     - powershell: |
