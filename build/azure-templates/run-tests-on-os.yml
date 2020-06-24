@@ -53,7 +53,7 @@ steps:
   displayName: 'Validate Template Parameters'
 
 
-task: DownloadPipelineArtifact@2
+- task: DownloadPipelineArtifact@2
   inputs:
     artifactName: ${{ parameters.binaryArtifactName }}
     targetPath: '$(Build.ArtifactStagingDirectory)'
