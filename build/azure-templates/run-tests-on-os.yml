@@ -70,7 +70,7 @@ steps:
 - task: ExtractFiles@1
   displayName: 'Extract files from ${{ parameters.publishedArtifactZipFileName }}'
   inputs:
-    archiveFilePatterns: '${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/${{ parameters.publishedArtifactZipFileName }}'
+    archiveFilePatterns: '$(System.ArtifactStagingDirectory)/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/${{ parameters.publishedArtifactZipFileName }}'
     destinationFolder: '$(System.DefaultWorkingDirectory)/${{ parameters.binaryArtifactName }}/${{ parameters.framework }}/'
     cleanDestinationFolder: false
 
