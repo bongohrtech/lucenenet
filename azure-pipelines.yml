@@ -114,13 +114,6 @@ stages:
     #     exit !($psake.build_success)
     #   displayName: 'PSake Build, Pack, and Publish'
 
-    - task: AzurePowerShell@5
-      inputs:
-        azureSubscription: 'Pay-As-You-Go(fc87657a-73a4-4380-8b44-1502a07bb1e1)'
-        ScriptType: 'FilePath'
-        ScriptPath: '\build\dotnet-install.ps1'
-        ScriptArguments: '-Version "3.1.100"'
-
     - task: DotNetCoreCLI@2
       inputs:
         command: 'restore'
