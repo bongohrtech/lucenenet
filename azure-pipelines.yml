@@ -95,25 +95,48 @@ stages:
       inputs:
         version: 3.1.100
 
-    - powershell: |
-        Import-Module "$(BuildDirectory)/psake.psm1"
-        $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
-        $parameters = @{}
-        $properties = @{
-            backup_files='false';
-            publish_directory='$(PublishTempDirectory)';
-            nuget_package_directory='$(NuGetArtifactDirectory)'
-            # Lock the build.bat so it only builds this version in the release distribution
-            generateBuildBat=$generateBuildBat
-        }
-        [string[]]$tasks = 'Pack'
-        if ($Env:RunTests -ne 'false') {
-            [string[]]$tasks = 'Pack','Publish'
-        }
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
-        exit !($psake.build_success)
-      displayName: 'PSake Build, Pack, and Publish'
+    # - powershell: |
+    #     Import-Module "$(BuildDirectory)/psake.psm1"
+    #     $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
+    #     $parameters = @{}
+    #     $properties = @{
+    #         backup_files='false';
+    #         publish_directory='$(PublishTempDirectory)';
+    #         nuget_package_directory='$(NuGetArtifactDirectory)'
+    #         # Lock the build.bat so it only builds this version in the release distribution
+    #         generateBuildBat=$generateBuildBat
+    #     }
+    #     [string[]]$tasks = 'Pack'
+    #     if ($Env:RunTests -ne 'false') {
+    #         [string[]]$tasks = 'Pack','Publish'
+    #     }
+    #     Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
+    #     exit !($psake.build_success)
+    #   displayName: 'PSake Build, Pack, and Publish'
 
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'Pay-As-You-Go(fc87657a-73a4-4380-8b44-1502a07bb1e1)'
+        ScriptType: 'FilePath'
+        ScriptPath: '\build\dotnet-install.ps1'
+        ScriptArguments: '-Version "3.1.100"'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'restore'
+        feedsToUse: 'select'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        arguments: 'msbuild Lucene.Net.sln /t:Build _/p:Configuration="Release" / /p:PortableDebugTypeOnly=true  /p:TestFrameworks=true'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
     - task: ArchiveFiles@2
