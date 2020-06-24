@@ -73,6 +73,180 @@ variables:
   value: 'published.zip'
 
 stages:
+- stage: Build_Stage
+  displayName: 'Build Stage:'
+  jobs:
+
+  - job: Build
+    pool:
+      vmImage: 'windows-2019'
+
+    variables:
+      PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
+
+    steps:
+    - powershell: |
+        $configuration = if ($env:BUILDCONFIGURATION) { $env:BUILDCONFIGURATION } else { "Release" }
+        Write-Host "##vso[task.setvariable variable=BuildConfiguration;]$configuration"
+      displayName: 'Setup Default Variable Values'
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk 3.1.100'
+      inputs:
+        version: 3.1.100
+
+    - powershell: |
+        Import-Module "$(BuildDirectory)/psake.psm1"
+        $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
+        $parameters = @{}
+        $properties = @{
+            backup_files='false';
+            publish_directory='$(PublishTempDirectory)';
+            nuget_package_directory='$(NuGetArtifactDirectory)'
+            # Lock the build.bat so it only builds this version in the release distribution
+            generateBuildBat=$generateBuildBat
+        }
+        [string[]]$tasks = 'Pack'
+        if ($Env:RunTests -ne 'false') {
+            [string[]]$tasks = 'Pack','Publish'
+        }
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
+        exit !($psake.build_success)
+      displayName: 'PSake Build, Pack, and Publish'
+
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+    - task: ArchiveFiles@2
+      displayName: 'Zip $(PublishTempDirectory)/netcoreapp3.1'
+      inputs:
+        rootFolderOrFile: '$(PublishTempDirectory)/netcoreapp3.1'
+        includeRootFolder: false
+        archiveFile: '$(PublishDirectory)/netcoreapp3.1/$(PublishedArtifactZipFileName)'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+
+    - task: ArchiveFiles@2
+      displayName: 'Zip $(PublishTempDirectory)/netcoreapp2.2'
+      inputs:
+        rootFolderOrFile: '$(PublishTempDirectory)/netcoreapp2.2'
+        includeRootFolder: false
+        archiveFile: '$(PublishDirectory)/netcoreapp2.2/$(PublishedArtifactZipFileName)'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+
+    - task: ArchiveFiles@2
+      displayName: 'Zip $(PublishTempDirectory)/net48'
+      inputs:
+        rootFolderOrFile: '$(PublishTempDirectory)/net48'
+        includeRootFolder: false
+        archiveFile: '$(PublishDirectory)/net48/$(PublishedArtifactZipFileName)'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+
+    - powershell: |
+        $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
+        '$(PackageVersion)' | Out-File -FilePath "$dir/$(PackageVersionFileName)" -Force
+        '$(FileVersion)' | Out-File -FilePath "$dir/$(FileVersionFileName)" -Force
+        '$(Build.BuildNumber)' | Out-File -FilePath "$dir/$(BuildNumberFileName)" -Force
+      displayName: 'Write Versions to Files'
+
+    # If this is a release pipeline, copy the build.bat and Version.props files as version artifacts, which will 
+    # overwrite the build.bat and Version.props files of the release.
+    - task: CopyFiles@2
+      displayName: 'Copy build.bat and Version.props Files to: /$(VersionArtifactName)'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)'
+        Contents: |
+          build.bat
+          Version.props
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+      condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(VersionArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        ArtifactName: '$(VersionArtifactName)'
+
+    # Copy the .pdb files as build artifacts, which will 
+    # later be used to push to the Azure Artifacts symbol server.
+    - task: CopyFiles@2
+      displayName: 'Copy .pdb Files to: /$(DebugArtifactName)'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)'
+        Contents: '**/bin/$(BuildConfiguration)/**/*.pdb'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(BinaryArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+        ArtifactName: '$(BinaryArtifactName)'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(NuGetArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+        ArtifactName: '$(NuGetArtifactName)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(DebugArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
+        ArtifactName: '$(DebugArtifactName)'
+
+  - job: Docs
+    condition: and(succeeded(), eq(variables['GenerateDocs'], 'true'))
+    pool:
+      vmImage: 'vs2017-win2016'
+
+    steps:
+    - powershell: |
+         $(Build.SourcesDirectory)/websites/apidocs/docs.ps1 0 1
+      errorActionPreference: 'continue'
+      ignoreLASTEXITCODE: true
+      failOnStderr: false
+      displayName: 'Generate Documentation'
+
+    - task: ArchiveFiles@2
+      displayName: 'Zip Documenation Files'
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)/websites/apidocs/_site'
+        includeRootFolder: false
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(DocumentationArtifactName)/$(DocumentationArtifactZipFileName)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(DocumentationArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(DocumentationArtifactName)'
+        ArtifactName: '$(DocumentationArtifactName)'
+
+  - job: Website
+    condition: and(succeeded(), eq(variables['GenerateWebsite'], 'true'))
+    pool:
+      vmImage: 'vs2017-win2016'
+
+    steps:
+    - powershell: |
+         $(Build.SourcesDirectory)/websites/site/site.ps1 0 1
+      errorActionPreference: 'continue'
+      ignoreLASTEXITCODE: true
+      failOnStderr: false
+      displayName: 'Generate Website'
+
+    - task: ArchiveFiles@2
+      displayName: 'Zip Website Files'
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)/websites/site/_site'
+        includeRootFolder: false
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(WebsiteArtifactName)/$(WebsiteArtifactZipFileName)'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(WebsiteArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(WebsiteArtifactName)'
+        ArtifactName: '$(WebsiteArtifactName)'
+
+
 - stage: Test_Stage
   displayName: 'Test Stage:'
   jobs:
