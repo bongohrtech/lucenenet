@@ -149,7 +149,7 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(VersionArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
         ArtifactName: '$(VersionArtifactName)'
     # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
@@ -163,20 +163,20 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
         ArtifactName: '$(BinaryArtifactName)'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(NuGetArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
         ArtifactName: '$(NuGetArtifactName)'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(DebugArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
         ArtifactName: '$(DebugArtifactName)'
 
   - job: Docs
