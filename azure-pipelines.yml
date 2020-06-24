@@ -95,41 +95,25 @@ stages:
       inputs:
         version: 3.1.100
 
-    # - powershell: |
-    #     Import-Module "$(BuildDirectory)/psake.psm1"
-    #     $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
-    #     $parameters = @{}
-    #     $properties = @{
-    #         backup_files='false';
-    #         publish_directory='$(PublishTempDirectory)';
-    #         nuget_package_directory='$(NuGetArtifactDirectory)'
-    #         # Lock the build.bat so it only builds this version in the release distribution
-    #         generateBuildBat=$generateBuildBat
-    #     }
-    #     [string[]]$tasks = 'Pack'
-    #     if ($Env:RunTests -ne 'false') {
-    #         [string[]]$tasks = 'Pack','Publish'
-    #     }
-    #     Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
-    #     exit !($psake.build_success)
-    #   displayName: 'PSake Build, Pack, and Publish'
+    - powershell: |
+        Import-Module "$(BuildDirectory)/psake.psm1"
+        $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
+        $parameters = @{}
+        $properties = @{
+            backup_files='false';
+            publish_directory='$(PublishTempDirectory)';
+            nuget_package_directory='$(NuGetArtifactDirectory)'
+            # Lock the build.bat so it only builds this version in the release distribution
+            generateBuildBat=$generateBuildBat
+        }
+        [string[]]$tasks = 'Pack'
+        if ($Env:RunTests -ne 'false') {
+            [string[]]$tasks = 'Pack','Publish'
+        }
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
+        exit !($psake.build_success)
+      displayName: 'PSake Build, Pack, and Publish'
 
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: 'restore'
-        feedsToUse: 'select'
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: 'build'
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: 'build'
-        arguments: 'msbuild Lucene.Net.sln /t:Build _/p:Configuration="Release" / /p:PortableDebugTypeOnly=true  /p:TestFrameworks=true'
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: 'publish'
-        publishWebProjects: false
-        
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
     - task: ArchiveFiles@2
@@ -138,24 +122,6 @@ stages:
         rootFolderOrFile: '$(PublishTempDirectory)/netcoreapp3.1'
         includeRootFolder: false
         archiveFile: '$(PublishDirectory)/netcoreapp3.1/$(PublishedArtifactZipFileName)'
-        archiveType: 'zip'
-      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-
-    - task: ArchiveFiles@2
-      displayName: 'Zip $(PublishTempDirectory)/netcoreapp2.2'
-      inputs:
-        rootFolderOrFile: '$(PublishTempDirectory)/netcoreapp2.2'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(PublishDirectory)/netcoreapp2.2/$(PublishedArtifactZipFileName)'
-      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-
-    - task: ArchiveFiles@2
-      displayName: 'Zip $(PublishTempDirectory)/net48'
-      inputs:
-        rootFolderOrFile: '$(PublishTempDirectory)/net48'
-        includeRootFolder: false
-        archiveFile: '$(PublishDirectory)/net48/$(PublishedArtifactZipFileName)'
         archiveType: 'zip'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
@@ -277,14 +243,6 @@ stages:
           osName: 'Windows'
           imageName: 'windows-2019'
           maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-        Linux:
-          osName: 'Linux'
-          imageName: 'ubuntu-16.04'
-          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-        macOS:
-          osName: 'macOS'
-          imageName: 'macOS-10.14'
-          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
     displayName: 'Test netcoreapp3.1 on'
     pool:
       vmImage: $(imageName)
@@ -297,51 +255,6 @@ stages:
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 8
         maximumAllowedFailures: $(maximumAllowedFailures)
-
-  - job: Test_netcoreapp2_2
-    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-    strategy:
-      matrix:
-        Windows:
-          osName: 'Windows'
-          imageName: 'windows-2019'
-          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-        Linux:
-          osName: 'Linux'
-          imageName: 'ubuntu-16.04'
-          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-        macOS:
-          osName: 'macOS'
-          imageName: 'macOS-10.14'
-          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-    displayName: 'Test netcoreapp2.2 on'
-    pool:
-      vmImage: $(imageName)
-    steps:
-    - template: 'build/azure-templates/run-tests-on-os.yml'
-      parameters:
-        osName: $(osName)
-        framework: 'netcoreapp2.2'
-        testResultsArtifactName: '$(TestResultsArtifactName)'
-        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 8
-        maximumAllowedFailures: $(maximumAllowedFailures)
-
-  - job: Test_net48_Windows
-    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-    displayName: 'Test net48 on Windows'
-    pool:
-      vmImage: 'windows-2019'
-    steps:
-    - template: 'build/azure-templates/run-tests-on-os.yml'
-      parameters:
-        osName: 'Windows'
-        framework: 'net48'
-        testResultsArtifactName: '$(TestResultsArtifactName)'
-        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 9
-        maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-
 
 - stage: Publish_Stage
   displayName: 'Publish Stage:'
