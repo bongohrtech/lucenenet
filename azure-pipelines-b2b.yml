@@ -100,10 +100,8 @@ stages:
             nuget | "$(Agent.OS)"
             nuget
         path: $(NUGET_PACKAGES)
-        cacheHitVar: $(cacheHit)
 
     - task: DotNetCoreCLI@2
-      condition: eq(variables['cacheHit'], 'true')
       displayName: Restore
       inputs:
         command: restore
