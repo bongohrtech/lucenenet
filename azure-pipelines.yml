@@ -122,7 +122,22 @@ stages:
         rootFolderOrFile: '$(PublishTempDirectory)/netcoreapp3.1'
         includeRootFolder: false
         archiveFile: '$(PublishDirectory)/netcoreapp3.1/$(PublishedArtifactZipFileName)'
-        archiveType: 'zip'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+
+    - task: ArchiveFiles@2
+      displayName: 'Zip $(PublishTempDirectory)/netcoreapp2.2'
+      inputs:
+        rootFolderOrFile: '$(PublishTempDirectory)/netcoreapp2.2'
+        includeRootFolder: false
+        archiveFile: '$(PublishDirectory)/netcoreapp2.2/$(PublishedArtifactZipFileName)'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+
+    - task: ArchiveFiles@2
+      displayName: 'Zip $(PublishTempDirectory)/net48'
+      inputs:
+        rootFolderOrFile: '$(PublishTempDirectory)/net48'
+        includeRootFolder: false
+        archiveFile: '$(PublishDirectory)/net48/$(PublishedArtifactZipFileName)'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
     - powershell: |
@@ -144,12 +159,13 @@ stages:
           Version.props
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
       condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
-         
-    - task: PublishPipelineArtifact@1
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(VersionArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
-        artifact: '$(VersionArtifactName)'
-        publishLocation: 'pipeline'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        ArtifactName: '$(VersionArtifactName)'
+
     # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
     - task: CopyFiles@2
@@ -159,27 +175,24 @@ stages:
         Contents: '**/bin/$(BuildConfiguration)/**/*.pdb'
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
 
-    - task: PublishPipelineArtifact@1
+    - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
-        artifact: '$(BinaryArtifactName)'
-        publishLocation: 'pipeline'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+        ArtifactName: '$(BinaryArtifactName)'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 
-    - task: PublishPipelineArtifact@1
+    - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: $(NuGetArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
-        artifact: '$(NuGetArtifactName)'
-        publishLocation: 'pipeline'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+        ArtifactName: '$(NuGetArtifactName)'
 
-    - task: PublishPipelineArtifact@1
+    - task: PublishBuildArtifacts@1
       displayName: 'Publish Artifact: $(DebugArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
-        artifact: '$(DebugArtifactName)'
-        publishLocation: 'pipeline'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
+        ArtifactName: '$(DebugArtifactName)'
 
   - job: Docs
     condition: and(succeeded(), eq(variables['GenerateDocs'], 'true'))
@@ -245,6 +258,14 @@ stages:
           osName: 'Windows'
           imageName: 'windows-2019'
           maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        Linux:
+          osName: 'Linux'
+          imageName: 'ubuntu-16.04'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        macOS:
+          osName: 'macOS'
+          imageName: 'macOS-10.14'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
     displayName: 'Test netcoreapp3.1 on'
     pool:
       vmImage: $(imageName)
@@ -257,6 +278,51 @@ stages:
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 8
         maximumAllowedFailures: $(maximumAllowedFailures)
+
+  - job: Test_netcoreapp2_2
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    strategy:
+      matrix:
+        Windows:
+          osName: 'Windows'
+          imageName: 'windows-2019'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        Linux:
+          osName: 'Linux'
+          imageName: 'ubuntu-16.04'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        macOS:
+          osName: 'macOS'
+          imageName: 'macOS-10.14'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+    displayName: 'Test netcoreapp2.2 on'
+    pool:
+      vmImage: $(imageName)
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os.yml'
+      parameters:
+        osName: $(osName)
+        framework: 'netcoreapp2.2'
+        testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        maximumParallelJobs: 8
+        maximumAllowedFailures: $(maximumAllowedFailures)
+
+  - job: Test_net48_Windows
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    displayName: 'Test net48 on Windows'
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os.yml'
+      parameters:
+        osName: 'Windows'
+        framework: 'net48'
+        testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        maximumParallelJobs: 9
+        maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+
 
 - stage: Publish_Stage
   displayName: 'Publish Stage:'
