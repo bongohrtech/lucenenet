@@ -200,7 +200,7 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 		}
 		
 		foreach ($framework in $frameworksToTest) {
-			$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests") } | Select -ExpandProperty FullName
+			$testProjects = Get-ChildItem -Path "$source_directory/**/*.csproj" -Recurse | ? { $_.Directory.Name.Contains(".Tests._T-U") } | Select -ExpandProperty FullName
 			foreach ($testProject in $testProjects) {
 				# Pause if we have queued too many parallel jobs
 				$running = @(Get-Job | Where-Object { $_.State -eq 'Running' })
