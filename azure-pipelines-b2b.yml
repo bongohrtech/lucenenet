@@ -70,8 +70,9 @@ variables:
 - name: NuGetArtifactDirectory # NuGet binaries directory
   value: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
 - name: PublishedArtifactZipFileName
-  value: 'published.zip'
-  NUGET_PACKAGES: $(Build.SourcesDirectory)\.nuget\packages
+  value: 'published.zip'  
+- name: NUGET_PACKAGES
+  value: $(Build.SourcesDirectory)\.nuget\packages
 
 stages:
 - stage: Build_Stage
