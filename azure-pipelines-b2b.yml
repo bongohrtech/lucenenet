@@ -101,20 +101,6 @@ stages:
             nuget
         path: $(NUGET_PACKAGES)
 
-    - task: DotNetCoreCLI@2
-      displayName: Restore
-      inputs:
-        command: restore
-        feedsToUse: 'select'
-        verbosityRestore: 'Normal'
-        arguments: '.\Lucene.Net.sln --locked-mode --configuration  "Release"'
-        
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: 'build'       
-        projects: 'Lucene.Net.sln'
-        arguments: '--configuration  "Release"  --no-restore --source $(Build.SourcesDirectory)\.nuget\packages'
-
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
         $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
@@ -135,19 +121,32 @@ stages:
       displayName: 'PSake Build, Pack, and Publish'
 
     - template: 'build/azure-templates/show-all-environment-variables.yml'
+        
+    - powershell: |
+    $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+    if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
+    '$(PackageVersion)' | Out-File -FilePath "$dir/$(PackageVersionFileName)" -Force
+    '$(FileVersion)' | Out-File -FilePath "$dir/$(FileVersionFileName)" -Force
+    '$(Build.BuildNumber)' | Out-File -FilePath "$dir/$(BuildNumberFileName)" -Force
+      displayName: 'Write Versions to Files'
 
-   # - task: DotNetCoreCLI@2
-   #   inputs:
-   #     command: 'publish'
-   #     projects: '**/*.csproj'
-   #     publishWebProjects: false
-   #     modifyOutputPath: true
-   #     arguments: '--framework netcoreapp3.1'
+    # If this is a release pipeline, copy the build.bat and Version.props files as version artifacts, which will 
+    # overwrite the build.bat and Version.props files of the release.
+    - task: CopyFiles@2
+      displayName: 'Copy build.bat and Version.props Files to: /$(VersionArtifactName)'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)'
+        Contents: |
+          build.bat
+          Version.props
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+      condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Artifact: $(BinaryArtifactName) from $(PublishDirectory)'
+      displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
-        targetPath: '$(PublishDirectory)'
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
         artifact: '$(BinaryArtifactName)'
         publishLocation: 'pipeline'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 # LUCENENET TODO: Write VCS Label (git tag) automatically
