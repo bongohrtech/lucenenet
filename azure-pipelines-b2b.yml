@@ -71,6 +71,7 @@ variables:
   value: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
 - name: PublishedArtifactZipFileName
   value: 'published.zip'
+  NUGET_PACKAGES: $(Build.SourcesDirectory)\.nuget\packages
 
 stages:
 - stage: Build_Stage
@@ -85,6 +86,11 @@ stages:
       PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
 
     steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk 3.1.100'
+      inputs:
+        version: 3.1.100
+
     - script: dotnet nuget locals global-packages -l
       displayName: 'dotnet nuget locals global-packages -l'
 
@@ -107,11 +113,11 @@ stages:
           nuget | "$(Agent.OS)"
           nuget
         path: $(NUGET_PACKAGES)
-        cacheHitVar: CACHE_RESTORED
+        cacheHitVar: $(cacheHit)
       displayName: Cache NuGet packages
 
     - task: DotNetCoreCLI@2
-      condition: ne(variables.CACHE_RESTORED, 'true')
+      condition: eq(variables['cacheHit'], 'true')
       displayName: Restore
       inputs:
         command: restore
@@ -123,7 +129,7 @@ stages:
       inputs:
         command: 'build'       
         projects: 'Lucene.Net.sln'
-        arguments: '--configuration  "Release"  --no-restore'
+        arguments: '--configuration  "Release"  --no-restore --source $(Build.SourcesDirectory)\.nuget\packages'
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
