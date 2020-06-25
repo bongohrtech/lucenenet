@@ -92,10 +92,12 @@ stages:
           nuget | "$(Agent.OS)"
           nuget
         path: $(Pipeline.Workspace)/.nuget/packages
+        cacheHitVar: CACHE_RESTORED
       displayName: Cache NuGet packages
 
     - task: DotNetCoreCLI@2
       displayName: Restore
+      condition: ne(variables.CACHE_RESTORED, 'true')
       inputs:
         command: restore
         projects: $(solution)
