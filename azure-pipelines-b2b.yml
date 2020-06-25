@@ -83,13 +83,15 @@ stages:
     pool:
       vmImage: 'windows-2019'
 
-    - checkout: self # self represents the repo where the initial Pipelines YAML file was found
-        fetchDepth: 50  # the depth of commits to ask Git to fetch
 
     variables:
       PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
 
     steps:
+    
+    - checkout: self # self represents the repo where the initial Pipelines YAML file was found
+        fetchDepth: 50  # the depth of commits to ask Git to fetch
+
     - task: UseDotNet@2
       displayName: 'Use .NET Core sdk 3.1.100'
       inputs:
