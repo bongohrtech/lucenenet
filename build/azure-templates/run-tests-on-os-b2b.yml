@@ -33,8 +33,7 @@ parameters:
   where: '' # A test filter expression, as defined by dotnet vstest
 
 steps:
-- checkout: self # self represents the repo where the initial Pipelines YAML file was found
-  fetchDepth: 1  # the depth of commits to ask Git to fetch
+- checkout: none # self represents the repo where the initial Pipelines YAML file was found
 
 - powershell: |
     function EnsureNotNullOrEmpty([string]$param, [string]$nameOfParam) {
@@ -204,7 +203,7 @@ steps:
   displayName: 'Publish Artifact: ${{ parameters.testResultsArtifactName }}'
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)/${{ parameters.testResultsArtifactName }}'
-    ArtifactName: '${{ parameters.testResultsArtifactName }}/${{ parameters.vsTestPlatform }}'
+    ArtifactName: '${{ parameters.testResultsArtifactName }}_${{ parameters.osName }}'
   condition: succeededOrFailed()
 
 # Due to the fact that it is not possible to loop a task and
