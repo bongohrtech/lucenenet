@@ -109,6 +109,7 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
+        projects: '**/*.csproj'
         publishWebProjects: false
         modifyOutputPath: true
     - task: PublishPipelineArtifact@1
