@@ -85,24 +85,39 @@ stages:
       PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
 
     steps:
+    - script: dotnet nuget locals global-packages -l
+      displayName: 'dotnet nuget locals global-packages -l'
+
+    - task: PowerShell@2
+      inputs:
+        targetType: 'inline'
+        script: |
+          $cache = dotnet nuget locals global-packages -l
+          $cacheLocation = $cache.Replace('info : global-packages: ', '')
+      
+          Write-Host $cacheLocation
+      
+          Write-Host "##vso[task.setvariable variable=NUGET_PACKAGES;]$cacheLocation"
+
+        pwsh: true
     - task: Cache@2
       inputs:
         key: 'nuget | "$(Agent.OS)" | **/*.csproj'
         restoreKeys: |
           nuget | "$(Agent.OS)"
           nuget
-        path: $(Pipeline.Workspace)/.nuget/packages
+        path: $(NUGET_PACKAGES)
         cacheHitVar: CACHE_RESTORED
       displayName: Cache NuGet packages
 
     - task: DotNetCoreCLI@2
+      condition: ne(variables.CACHE_RESTORED, 'true')
       displayName: Restore
       inputs:
         command: restore
         feedsToUse: 'select'
         verbosityRestore: 'Normal'
         arguments: '--configuration  "Release"'
-        condition: ne(variables.CACHE_RESTORED, 'true')
         
     - task: DotNetCoreCLI@2
       inputs:
@@ -115,6 +130,8 @@ stages:
         projects: '**/*.csproj'
         publishWebProjects: false
         modifyOutputPath: true
+        arguments: '--framework netcoreapp3.1'
+
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName) from $(PublishDirectory)'
       inputs:
