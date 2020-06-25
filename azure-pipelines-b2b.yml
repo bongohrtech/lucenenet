@@ -87,11 +87,8 @@ stages:
     steps:
     - task: DotNetCoreCLI@2
       inputs:
-        command: publish
-        projects: '../Lucene.Net.sln'
-
-        arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-        zipAfterPublish: True
-
+        command: 'build'
+        arguments: 'msbuild Lucene.Net.sln /t:Build _/p:Configuration="Release" / /p:PortableDebugTypeOnly=true  /p:TestFrameworks=true'
+    
 
 # LUCENENET TODO: Write VCS Label (git tag) automatically
