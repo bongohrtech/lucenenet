@@ -90,7 +90,7 @@ stages:
     steps:
     
     - checkout: self # self represents the repo where the initial Pipelines YAML file was found
-      fetchDepth: 50  # the depth of commits to ask Git to fetch
+      fetchDepth: 1  # the depth of commits to ask Git to fetch
 
     - task: UseDotNet@2
       displayName: 'Use .NET Core sdk 3.1.100'
@@ -150,8 +150,8 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
-        artifact: '$(BinaryArtifactName)'
+        targetPath: '$(PublishTempDirectory)/netcoreapp3.1'
+        artifact: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)/netcoreapp3.1'
         publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 # LUCENENET TODO: Write VCS Label (git tag) automatically
