@@ -93,5 +93,8 @@ stages:
       inputs:
         command: 'build'       
         projects: 'Lucene.Net.sln'
-        
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
 # LUCENENET TODO: Write VCS Label (git tag) automatically
