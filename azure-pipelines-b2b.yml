@@ -85,31 +85,12 @@ stages:
       PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
 
     steps:
-    - powershell: |
-        $configuration = if ($env:BUILDCONFIGURATION) { $env:BUILDCONFIGURATION } else { "Release" }
-        Write-Host "##vso[task.setvariable variable=BuildConfiguration;]$configuration"
-      displayName: 'Setup Default Variable Values'
-
-    - powershell: |
-        Import-Module "$(BuildDirectory)/psake.psm1"
-        $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
-        $parameters = @{}
-        $properties = @{
-            backup_files='false';
-            publish_directory='$(PublishTempDirectory)';
-            nuget_package_directory='$(NuGetArtifactDirectory)'
-            # Lock the build.bat so it only builds this version in the release distribution
-            generateBuildBat=$generateBuildBat
-        }
-        [string[]]$tasks = 'Pack'
-        if ($Env:RunTests -ne 'false') {
-            [string[]]$tasks = 'Pack','Publish'
-        }
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
-        exit !($psake.build_success)
-      displayName: 'PSake Build, Pack, and Publish'
-
-    - template: 'build/azure-templates/show-all-environment-variables.yml'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: publish
+        publishWebProjects: True
+        arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: True
 
 
 # LUCENENET TODO: Write VCS Label (git tag) automatically
