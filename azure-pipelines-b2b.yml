@@ -168,7 +168,7 @@ stages:
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
-        targetPath: '$(PublishTempDirectory)/netcoreapp3.1'
+        targetPath: '$(PublishTempDirectory)'
         artifact: '$(BinaryArtifactName)'
         publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
