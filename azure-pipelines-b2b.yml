@@ -87,6 +87,10 @@ stages:
     steps:
     - task: DotNetCoreCLI@2
       inputs:
+        command: 'restore'
+        feedsToUse: 'select'
+    - task: DotNetCoreCLI@2
+      inputs:
         command: 'build'
         arguments: 'msbuild Lucene.Net.sln /t:Build _/p:Configuration="Release" / /p:PortableDebugTypeOnly=true  /p:TestFrameworks=true'
     
