@@ -85,11 +85,22 @@ stages:
       PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
 
     steps:
+    - task: Cache@2
+      inputs:
+        key: 'nuget | "$(Agent.OS)" | **/*.csproj'
+        restoreKeys: |
+          nuget | "$(Agent.OS)"
+          nuget
+        path: $(Pipeline.Workspace)/.nuget/packages
+      displayName: Cache NuGet packages
 
     - task: DotNetCoreCLI@2
+      displayName: Restore
       inputs:
-        command: 'restore'
+        command: restore
         feedsToUse: 'select'
+        verbosityRestore: 'Normal'
+        
     - task: DotNetCoreCLI@2
       inputs:
         command: 'build'       
