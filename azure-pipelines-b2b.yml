@@ -1,0 +1,120 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+# 
+#   http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+name: 'vNext$(rev:.r)' # Format for build number (will be overridden)
+
+# DevOps Setup: Define the following pipeline level variables in Azure DevOps build pipeline
+#
+# ArtifactFeedID: (Optional - set to your Azure DevOps Artifact (NuGet) feed. If not provided, publish job will be skipped.)
+# BuildConfiguration: (Optional. Defaults to 'Release')
+# BuildPlatform: (Optional. Defaults to 'Any CPU')
+# GenerateDocs: (Optional. Only builds documentation website if set to 'true'.)
+# GenerateWebsite: (Optional. Only builds lucene.net website if set to 'true'.)
+# IsRelease: (Optional. By default the Release job is disabled, setting this to 'true' will enable it)
+# RunTests: 'true' (Optional - set to 'false' to disable test jobs - useful for debugging. If not provided, tests will be run.)
+
+# Versioning Variables
+
+# BuildCounterSeed: (Optional - Set in conjunction with VersionSuffix, will cause the build counter to begin at this value. Note that it is set once, to reset is an API call.)
+# PackageVersion: (Optional - This can be used to explicitly set the whole version number to a specific version, i.e. 4.8.0-beta00005. It overrides all other version settings.)
+# PreReleaseCounterPattern: (Optional. Set to '0000000000' in ci pipeline or '00000' in release pipeline. The default is '0000000000'. This setting has no effect if VersionSuffix is ''.)
+# VersionSuffix: (Optional. Defaults to 'ci'. Set to 'beta' or 'rc' or '' in production pipeline.)
+
+variables:
+- name: BuildCounter
+  value: $[counter(variables['VersionSuffix'],coalesce(variables['BuildCounterSeed'], 1250))]
+- name: DocumentationArtifactName
+  value: 'docs'
+- name: DocumentationArtifactZipFileName
+  value: 'documentation.zip'
+- name: WebsiteArtifactName
+  value: 'website'
+- name: WebsiteArtifactZipFileName
+  value: 'website.zip'  
+- name: BinaryArtifactName
+  value: 'testbinaries'
+- name: NuGetArtifactName
+  value: 'nuget'
+- name: DebugArtifactName # For .pdb symbols
+  value: 'debug'
+- name: ReleaseArtifactName
+  value: 'release'
+- name: TestResultsArtifactName
+  value: 'testresults'
+- name: VersionArtifactName
+  value: 'version'
+- name: BuildNumberFileName
+  value: 'buildNumber.txt'
+- name: PackageVersionFileName
+  value: 'packageVersion.txt'
+- name: FileVersionFileName
+  value: 'fileVersion.txt'
+- name: BuildDirectory # Where the build scripts and configs are
+  value: '$(System.DefaultWorkingDirectory)/build'
+- name: PublishDirectory # Test binaries directory
+  value: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)'
+- name: NuGetArtifactDirectory # NuGet binaries directory
+  value: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+- name: PublishedArtifactZipFileName
+  value: 'published.zip'
+
+stages:
+- stage: Build_Stage
+  displayName: 'Build Stage:'
+  jobs:
+
+  - job: Build
+    pool:
+      vmImage: 'windows-2019'
+
+    variables:
+      PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
+
+    steps:
+    - powershell: |
+        $configuration = if ($env:BUILDCONFIGURATION) { $env:BUILDCONFIGURATION } else { "Release" }
+        Write-Host "##vso[task.setvariable variable=BuildConfiguration;]$configuration"
+      displayName: 'Setup Default Variable Values'
+
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk 3.1.100'
+      inputs:
+        version: 3.1.100
+
+    - powershell: |
+        Import-Module "$(BuildDirectory)/psake.psm1"
+        $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
+        $parameters = @{}
+        $properties = @{
+            backup_files='false';
+            publish_directory='$(PublishTempDirectory)';
+            nuget_package_directory='$(NuGetArtifactDirectory)'
+            # Lock the build.bat so it only builds this version in the release distribution
+            generateBuildBat=$generateBuildBat
+        }
+        [string[]]$tasks = 'Pack'
+        if ($Env:RunTests -ne 'false') {
+            [string[]]$tasks = 'Pack','Publish'
+        }
+        Invoke-psake $(BuildDirectory)/build-b2b.ps1 -Task $tasks -properties $properties -parameters $parameters
+        exit !($psake.build_success)
+      displayName: 'PSake Build, Pack, and Publish'
+
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+
+# LUCENENET TODO: Write VCS Label (git tag) automatically
