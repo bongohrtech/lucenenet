@@ -60,7 +60,7 @@ steps:
   displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }}'
   inputs:
     artifactName: ${{ parameters.binaryArtifactName }}
-    path: '$(Build.ArtifactStagingDirectory)'
+    path: '$(System.DefaultWorkingDirectory)'
     
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk 3.1.100'
