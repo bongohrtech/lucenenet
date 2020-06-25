@@ -182,15 +182,6 @@ stages:
         artifact: '$(NuGetArtifactName)'
         publishLocation: 'pipeline'
 
-        
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Artifact: $(DebugArtifactName)'
-      inputs:
-        targetPath:  '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
-        artifact: '$(DebugArtifactName)'
-        publishLocation: 'pipeline'
-
-
 - stage: Test_Stage
   displayName: 'Test Stage:'
   jobs:
