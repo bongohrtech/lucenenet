@@ -97,11 +97,12 @@ stages:
 
     - task: DotNetCoreCLI@2
       displayName: Restore
-      condition: ne(variables.CACHE_RESTORED, 'true')
       inputs:
         command: restore
         feedsToUse: 'select'
         verbosityRestore: 'Normal'
+        arguments: '--configuration  "Release"'
+        condition: ne(variables.CACHE_RESTORED, 'true')
         
     - task: DotNetCoreCLI@2
       inputs:
