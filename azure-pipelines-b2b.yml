@@ -88,7 +88,6 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: publish
-        publishWebProjects: True
         projects: 'Lucene.Net.sln'
 
         arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
