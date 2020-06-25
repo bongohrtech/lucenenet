@@ -89,6 +89,8 @@ stages:
       inputs:
         command: publish
         publishWebProjects: True
+        projects: 'Lucene.Net.sln'
+
         arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
         zipAfterPublish: True
 
