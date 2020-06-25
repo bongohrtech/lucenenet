@@ -100,7 +100,6 @@ stages:
       condition: ne(variables.CACHE_RESTORED, 'true')
       inputs:
         command: restore
-        projects: $(solution)
         feedsToUse: 'select'
         verbosityRestore: 'Normal'
         
