@@ -85,6 +85,7 @@ stages:
       PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
 
     steps:
+
     - task: DotNetCoreCLI@2
       inputs:
         command: 'restore'
@@ -93,8 +94,16 @@ stages:
       inputs:
         command: 'build'       
         projects: 'Lucene.Net.sln'
+        arguments: '--configuration $(BuildConfiguration) --no-restore'
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
+        arguments: '--configuration $(BuildConfiguration) --output "$(PublishDirectory)" --no-restore'        
         publishWebProjects: false
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(BinaryArtifactName) from $(PublishDirectory)'
+      inputs:
+        targetPath: '$(PublishDirectory)'
+        artifact: '$(BinaryArtifactName)'
+        publishLocation: 'pipeline'
 # LUCENENET TODO: Write VCS Label (git tag) automatically
