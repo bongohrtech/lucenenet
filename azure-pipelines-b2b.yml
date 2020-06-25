@@ -151,7 +151,7 @@ stages:
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
         targetPath: '$(PublishTempDirectory)/netcoreapp3.1'
-        artifact: '$(Build.ArtifactStagingDirectory)/$(BinaryArtifactName)/netcoreapp3.1'
+        artifact: '$(BinaryArtifactName)'
         publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
 # LUCENENET TODO: Write VCS Label (git tag) automatically
