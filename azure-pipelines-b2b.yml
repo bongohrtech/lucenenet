@@ -105,11 +105,11 @@ stages:
       inputs:
         command: 'build'       
         projects: 'Lucene.Net.sln'
-        arguments: '--configuration $(BuildConfiguration) --no-restore'
+        arguments: '--configuration  "Release"  --no-restore'
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
-        arguments: '--configuration $(BuildConfiguration) --output "$(PublishDirectory)" --no-restore'        
+        arguments: '--configuration  "Release"  --output "$(PublishDirectory)" --no-restore'        
         publishWebProjects: false
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName) from $(PublishDirectory)'
