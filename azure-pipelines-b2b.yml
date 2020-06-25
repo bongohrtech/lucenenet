@@ -90,11 +90,6 @@ stages:
         Write-Host "##vso[task.setvariable variable=BuildConfiguration;]$configuration"
       displayName: 'Setup Default Variable Values'
 
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk 3.1.100'
-      inputs:
-        version: 3.1.100
-
     - powershell: |
         Import-Module "$(BuildDirectory)/psake.psm1"
         $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
@@ -110,7 +105,7 @@ stages:
         if ($Env:RunTests -ne 'false') {
             [string[]]$tasks = 'Pack','Publish'
         }
-        Invoke-psake $(BuildDirectory)/build-b2b.ps1 -Task $tasks -properties $properties -parameters $parameters
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
         exit !($psake.build_success)
       displayName: 'PSake Build, Pack, and Publish'
 
