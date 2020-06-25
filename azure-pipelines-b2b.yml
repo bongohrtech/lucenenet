@@ -109,8 +109,8 @@ stages:
     - task: DotNetCoreCLI@2
       inputs:
         command: 'publish'
-        arguments: '--configuration  "Release"  --output "$(PublishDirectory)" --no-restore'        
         publishWebProjects: false
+        modifyOutputPath: true
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName) from $(PublishDirectory)'
       inputs:
