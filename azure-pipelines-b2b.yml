@@ -89,10 +89,6 @@ stages:
 
     steps:
     
-    - script: echo Release!
-      condition: and(succeeded(), eq(variables['Build.Configuration'], 'Release'))
-    - script: echo NOT Release!
-      condition: and(succeeded(), ne(variables['Build.Configuration'], 'Release'))
 
     - checkout: self # self represents the repo where the initial Pipelines YAML file was found
       fetchDepth: 1  # the depth of commits to ask Git to fetch
@@ -158,6 +154,8 @@ stages:
         targetPath: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
         artifact: '$(VersionArtifactName)'
         publishLocation: 'pipeline'
+    
+    - script: Get-ChildItem -Path $(System.DefaultWorkingDirectory)
 
     # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
