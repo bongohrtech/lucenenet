@@ -185,7 +185,7 @@ stages:
         targetPath: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
         artifact: '$(DebugArtifactName)'
         publishLocation: 'pipeline'
-      condition: and(succeeded(), ne(variables['IsRelease'], 'true'))
+      condition: and(succeeded(), eq(variables['IsRelease'], 'false'))
 
 - stage: Test_Stage
   displayName: 'Test Stage:'
