@@ -160,7 +160,7 @@ stages:
         publishLocation: 'pipeline'
     
     - powershell: | 
-        Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+        Get-ChildItem -Path $(System.DefaultWorkingDirectory)\*.pdb -Recurse
       displayName: 'Echo Path'
 
     # Copy the .pdb files as build artifacts, which will 
