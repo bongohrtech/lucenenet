@@ -145,7 +145,7 @@ stages:
           build.bat
           Version.props
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
-      condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
+      condition: and(succeeded(), eq($(BuildConfiguration), 'Release'))
             
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(VersionArtifactName)'
@@ -162,7 +162,7 @@ stages:
         SourceFolder: '$(System.DefaultWorkingDirectory)'
         Contents: '**/bin/$(BuildConfiguration)/**/*.pdb'
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
-      condition: and(succeeded(), ne(variables['IsRelease'], 'true'))
+      condition: and(succeeded(), ne($(BuildConfiguration), 'Release'))
         
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
@@ -180,12 +180,12 @@ stages:
         publishLocation: 'pipeline'
     
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Artifact: $(NuGetArtifactName)'
+      displayName: 'Publish Artifact: $(DebugArtifactName)'
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
         artifact: '$(DebugArtifactName)'
         publishLocation: 'pipeline'
-      condition: and(succeeded(), eq(variables['IsRelease'], 'false'))
+      condition: and(succeeded(), ne($(BuildConfiguration), 'Release'))
 
 - stage: Test_Stage
   displayName: 'Test Stage:'
