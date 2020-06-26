@@ -169,7 +169,8 @@ stages:
       displayName: 'Copy .pdb Files to: /$(DebugArtifactName)'
       inputs:
         SourceFolder: '$(System.DefaultWorkingDirectory)'
-        Contents: '**/bin/$(BuildConfiguration)/**/*.pdb'
+        Contents: |
+         **\**\bin\**\*.pdb
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
       condition: and(succeeded(), ne(variables['BuildConfiguration'], 'Release'))
         
