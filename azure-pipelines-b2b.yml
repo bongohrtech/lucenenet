@@ -155,7 +155,7 @@ stages:
         artifact: '$(VersionArtifactName)'
         publishLocation: 'pipeline'
     
-    - script: Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+    - powershell: | Get-ChildItem -Path $(System.DefaultWorkingDirectory)
 
     # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
