@@ -9,6 +9,7 @@ using System;
 using System.Collections;
 using System.Globalization;
 using System.Text;
+using J2N.Collections;
 using Assert = Lucene.Net.TestFramework.Assert;
 
 namespace Lucene.Net.Search
@@ -248,16 +249,16 @@ namespace Lucene.Net.Search
             Assert.IsTrue(td1.TotalHits <= td2.TotalHits);
 
             // fill the superset into a bitset
-            var bitset = new BitArray(td2.ScoreDocs.Length);
+            var bitset = new BitSet(td2.ScoreDocs.Length);
             for (int i = 0; i < td2.ScoreDocs.Length; i++)
             {
-                bitset.SafeSet(td2.ScoreDocs[i].Doc, true);
+                bitset.Set(td2.ScoreDocs[i].Doc, true);
             }
 
             // check in the subset, that every bit was set by the super
             for (int i = 0; i < td1.ScoreDocs.Length; i++)
             {
-                Assert.IsTrue(bitset.SafeGet(td1.ScoreDocs[i].Doc));
+                Assert.IsTrue(bitset.Get(td1.ScoreDocs[i].Doc));
             }
         }
     }

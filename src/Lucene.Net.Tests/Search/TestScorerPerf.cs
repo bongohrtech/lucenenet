@@ -4,6 +4,7 @@ using Lucene.Net.Support;
 using NUnit.Framework;
 using System;
 using System.Collections;
+using J2N.Collections;
 using Assert = Lucene.Net.TestFramework.Assert;
 using Console = Lucene.Net.Util.SystemConsole;
 
@@ -211,7 +212,14 @@ namespace Lucene.Net.Search
             public override DocIdSet GetDocIdSet(AtomicReaderContext context, IBits acceptDocs)
             {
                 Assert.IsNull(acceptDocs, "acceptDocs should be null, as we have an index without deletions");
-                return new DocIdBitSet(Rnd);
+                BitSet b = new BitSet(Rnd.Length);
+
+                for (int i = 0; i < Rnd.Length; i++)
+                {
+                    b.Set(i, Rnd[i]);
+                }
+
+                return new DocIdBitSet(b);
             }
         }
 

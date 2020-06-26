@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using J2N.Collections;
 using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Util.Fst
@@ -765,8 +766,8 @@ namespace Lucene.Net.Util.Fst
             IList<int?> sameLevelStates = new JCG.List<int?>();
 
             // A bitset of already seen states (target offset).
-            BitArray seen = new BitArray(32);
-            seen.SafeSet((int)startArc.Target, true);
+            BitSet seen = new BitSet(32);
+            seen.Set((int)startArc.Target, true);
 
             // Shape for states.
             const string stateShape = "circle";
@@ -848,7 +849,7 @@ namespace Lucene.Net.Util.Fst
                         {
                             //System.out.println("  cycle arc=" + arc);
                             // Emit the unseen state and add it to the queue for the next level.
-                            if (arc.Target >= 0 && !seen.SafeGet((int)arc.Target))
+                            if (arc.Target >= 0 && !seen.Get((int)arc.Target))
                             {
                                 /*
                                 boolean isFinal = false;
@@ -884,7 +885,7 @@ namespace Lucene.Net.Util.Fst
                                 EmitDotState(@out, Convert.ToString(arc.Target), stateShape, stateColor, finalOutput);
                                 // To see the node address, use this instead:
                                 //emitDotState(out, Integer.toString(arc.target), stateShape, stateColor, String.valueOf(arc.target));
-                                seen.SafeSet((int)arc.Target, true);
+                                seen.Set((int)arc.Target, true);
                                 nextLevelQueue.Add((new FST.Arc<T>()).CopyFrom(arc));
                                 sameLevelStates.Add((int)arc.Target);
                             }

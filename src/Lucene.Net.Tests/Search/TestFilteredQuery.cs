@@ -5,6 +5,7 @@ using Lucene.Net.Util;
 using NUnit.Framework;
 using System;
 using System.Collections;
+using J2N.Collections;
 using Assert = Lucene.Net.TestFramework.Assert;
 
 namespace Lucene.Net.Search
@@ -120,14 +121,14 @@ namespace Lucene.Net.Search
                 {
                     acceptDocs = new Bits.MatchAllBits(5);
                 }
-                BitArray bitset = new BitArray(5);
+                BitSet bitset = new BitSet(5);
                 if (acceptDocs.Get(1))
                 {
-                    bitset.SafeSet(1, true);
+                    bitset.Set(1, true);
                 }
                 if (acceptDocs.Get(3))
                 {
-                    bitset.SafeSet(3, true);
+                    bitset.Set(3, true);
                 }
                 return new DocIdBitSet(bitset);
             }
@@ -240,7 +241,7 @@ namespace Lucene.Net.Search
             public override DocIdSet GetDocIdSet(AtomicReaderContext context, IBits acceptDocs)
             {
                 Assert.IsNull(acceptDocs, "acceptDocs should be null, as we have an index without deletions");
-                BitArray bitset = new BitArray(5, true);
+                BitSet bitset = new BitSet(5);
                 return new DocIdBitSet(bitset);
             }
         }
@@ -573,11 +574,11 @@ namespace Lucene.Net.Search
                 {
                     return null; // no docs -- return null
                 }
-                BitArray bitSet = new BitArray(reader.MaxDoc);
+                BitSet bitSet = new BitSet(reader.MaxDoc);
                 int d;
                 while ((d = termDocsEnum.NextDoc()) != DocsEnum.NO_MORE_DOCS)
                 {
-                    bitSet.SafeSet(d, true);
+                    bitSet.Set(d, true);
                 }
                 return new DocIdSetAnonymousInnerClassHelper(this, nullBitset, reader, bitSet);
             }
@@ -588,9 +589,9 @@ namespace Lucene.Net.Search
 
                 private bool NullBitset;
                 private AtomicReader Reader;
-                private BitArray BitSet;
+                private BitSet BitSet;
 
-                public DocIdSetAnonymousInnerClassHelper(FilterAnonymousInnerClassHelper3 outerInstance, bool nullBitset, AtomicReader reader, BitArray bitSet)
+                public DocIdSetAnonymousInnerClassHelper(FilterAnonymousInnerClassHelper3 outerInstance, bool nullBitset, AtomicReader reader, BitSet bitSet)
                 {
                     this.OuterInstance = outerInstance;
                     this.NullBitset = nullBitset;
@@ -621,8 +622,8 @@ namespace Lucene.Net.Search
 
                     public bool Get(int index)
                     {
-                        Assert.IsTrue(OuterInstance.BitSet.SafeGet(index), "filter was called for a non-matching doc");
-                        return OuterInstance.BitSet.SafeGet(index);
+                        Assert.IsTrue(OuterInstance.BitSet.Get(index), "filter was called for a non-matching doc");
+                        return OuterInstance.BitSet.Get(index);
                     }
 
                     public int Length

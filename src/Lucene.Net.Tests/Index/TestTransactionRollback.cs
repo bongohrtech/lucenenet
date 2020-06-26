@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using J2N.Collections;
 using Assert = Lucene.Net.TestFramework.Assert;
 
 namespace Lucene.Net.Index
@@ -88,13 +89,13 @@ namespace Lucene.Net.Index
                 expectedLastRecordId -= 10;
                 RollBackLast(expectedLastRecordId);
 
-                BitArray expecteds = new BitArray(100);
+                BitSet expecteds = new BitSet(100);
                 expecteds.Set(1, (expectedLastRecordId + 1), true);
                 CheckExpecteds(expecteds);
             }
         }
 
-        private void CheckExpecteds(BitArray expecteds)
+        private void CheckExpecteds(BitSet expecteds)
         {
             IndexReader r = DirectoryReader.Open(Dir);
 
@@ -109,13 +110,13 @@ namespace Lucene.Net.Index
                     if (sval != null)
                     {
                         int val = Convert.ToInt32(sval);
-                        Assert.IsTrue(expecteds.SafeGet(val), "Did not expect document #" + val);
-                        expecteds.SafeSet(val, false);
+                        Assert.IsTrue(expecteds.Get(val), "Did not expect document #" + val);
+                        expecteds.Set(val, false);
                     }
                 }
             }
             r.Dispose();
-            Assert.AreEqual(0, expecteds.Cardinality(), "Should have 0 docs remaining ");
+            Assert.AreEqual(0, expecteds.Cardinality, "Should have 0 docs remaining ");
         }
 
         /*

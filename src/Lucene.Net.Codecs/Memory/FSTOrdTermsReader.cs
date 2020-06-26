@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using J2N.Collections;
 using JCG = J2N.Collections.Generic;
 
 namespace Lucene.Net.Codecs.Memory
@@ -966,9 +967,9 @@ namespace Lucene.Net.Codecs.Memory
         {
             var queue = new List<FST.Arc<T>>();
 
-            // Java version was BitSet(), but in .NET we don't have a zero contructor BitArray. 
+            // Java version was BitSet(), but in .NET we don't have a zero contructor BitSet. 
             // Couldn't find the default size in BitSet, so went with zero here.
-            var seen = new BitArray(0); 
+            var seen = new BitSet(0); 
             var reader = fst.GetBytesReader();
             var startArc = fst.GetFirstArc(new FST.Arc<T>());
             queue.Add(startArc);
@@ -980,9 +981,9 @@ namespace Lucene.Net.Codecs.Memory
 
                 long node = arc.Target;
                 //System.out.println(arc);
-                if (FST<T>.TargetHasArcs(arc) && !seen.SafeGet((int)node))
+                if (FST<T>.TargetHasArcs(arc) && !seen.Get((int)node))
                 {
-                    seen.SafeSet((int)node, true);
+                    seen.Set((int)node, true);
                     fst.ReadFirstRealTargetArc(node, arc, reader);
                     while (true)
                     {
