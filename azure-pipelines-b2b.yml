@@ -89,6 +89,10 @@ stages:
 
     steps:
     
+    
+    - powershell: | 
+        Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+      displayName: 'Echo Path'
 
     - checkout: self # self represents the repo where the initial Pipelines YAML file was found
       fetchDepth: 1  # the depth of commits to ask Git to fetch
@@ -155,7 +159,9 @@ stages:
         artifact: '$(VersionArtifactName)'
         publishLocation: 'pipeline'
     
-    - powershell: | Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+    - powershell: | 
+        Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+      displayName: 'Echo Path'
 
     # Copy the .pdb files as build artifacts, which will 
     # later be used to push to the Azure Artifacts symbol server.
