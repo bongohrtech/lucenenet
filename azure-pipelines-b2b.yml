@@ -202,21 +202,33 @@ stages:
         artifact: '$(DebugArtifactName)'
         publishLocation: 'pipeline'
       
+
+    - powershell: | 
+        Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+    - powershell: | 
+        Get-ChildItem -Path version
+    - powershell: | 
+        Get-ChildItem -Path nuget
+
     - task: DownloadPipelineArtifact@0
       displayName: 'Download Build Artifacts: $(NuGetArtifactName)'
       inputs:
         artifactName: '$(NuGetArtifactName)'
-        path: '$(Build.ArtifactStagingDirectory)'
+        path: nuget
 
 
     - task: DownloadPipelineArtifact@0
       displayName: 'Download Build Artifacts: $(VersionArtifactName)'
       inputs:
         artifactName: '$(VersionArtifactName)'
-        targetPath: $(Build.ArtifactStagingDirectory)
+        targetPath: version
         
     - powershell: | 
-        Get-ChildItem -Path $(Build.ArtifactStagingDirectory)
+        Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+    - powershell: | 
+        Get-ChildItem -Path version
+    - powershell: | 
+        Get-ChildItem -Path nuget
 
 - stage: Test_Stage
   displayName: 'Test Stage:'
