@@ -235,7 +235,7 @@ task Publish -depends Compile -description "This task uses dotnet publish to pac
 					param([string]$testProject, [string]$outputPath, [string]$logPath, [string]$framework, [string]$configuration, [string]$projectName)
 					Write-Host "Publishing '$testProject' on '$framework' to '$outputPath'..."
 					# Note: Cannot use Psake Exec in background
-					dotnet publish "$testProject" --output "$outputPath" --framework "$framework" --configuration "$configuration" --no-build --verbosity Detailed /p:TestFrameworks=true /p:Platform="$platform" > "$logPath/$projectName-dotnet-publish.log" 2> "$logPath/$projectName-dotnet-publish-error.log"
+					dotnet publish "$testProject" --output "$outputPath" --framework "$framework" --configuration "$configuration" --no-build --no-restore --verbosity Detailed /p:TestFrameworks=true /p:Platform="$platform" > "$logPath/$projectName-dotnet-publish.log" 2> "$logPath/$projectName-dotnet-publish-error.log"
 				}
 
 				# Execute the jobs in parallel
