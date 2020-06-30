@@ -161,7 +161,6 @@ stages:
         Contents: |
          **\**\bin\**\*.pdb
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
-      condition: and(succeeded(), ne(variables['BuildConfiguration'], 'Release'))
         
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)_netcoreapp3.1'
@@ -200,7 +199,6 @@ stages:
         targetPath: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
         artifact: '$(DebugArtifactName)'
         publishLocation: 'pipeline'
-      condition: and(succeeded(), ne(variables['BuildConfiguration'], 'Release'))
       
 - stage: Test_Stage
   displayName: 'Test Stage:'
