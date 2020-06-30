@@ -75,132 +75,132 @@ variables:
   value: $(Build.SourcesDirectory)\.nuget\packages
 
 stages:
-# - stage: Build_Stage
-#   displayName: 'Build Stage:'
-#   jobs:
+- stage: Build_Stage
+  displayName: 'Build Stage:'
+  jobs:
 
-#   - job: Build
-#     pool:
-#       vmImage: 'windows-2019'
+  - job: Build
+    pool:
+      vmImage: 'windows-2019'
 
 
-#     variables:
-#       PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
+    variables:
+      PublishTempDirectory: '$(Build.BinariesDirectory)/publish'
 
-#     steps:
+    steps:
     
-#     - checkout: self # self represents the repo where the initial Pipelines YAML file was found
-#       fetchDepth: 1  # the depth of commits to ask Git to fetch
+    - checkout: self # self represents the repo where the initial Pipelines YAML file was found
+      fetchDepth: 1  # the depth of commits to ask Git to fetch
 
-#     - task: UseDotNet@2
-#       displayName: 'Use .NET Core sdk 3.1.301'
-#       inputs:
-#         version: 3.1.301
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk 3.1.301'
+      inputs:
+        version: 3.1.301
     
-#     - task: Cache@2
-#       displayName: 'Cache NuGet packages'
-#       inputs:
-#         key: 'nuget | "$(Agent.OS)" | **/*.csproj'
-#         restoreKeys: |
-#             nuget | "$(Agent.OS)"
-#             nuget
-#         path: $(NUGET_PACKAGES)
+    - task: Cache@2
+      displayName: 'Cache NuGet packages'
+      inputs:
+        key: 'nuget | "$(Agent.OS)" | **/*.csproj'
+        restoreKeys: |
+            nuget | "$(Agent.OS)"
+            nuget
+        path: $(NUGET_PACKAGES)
 
-#     - powershell: |
-#         Import-Module "$(BuildDirectory)/psake.psm1"
-#         $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
-#         $parameters = @{}
-#         $properties = @{
-#             backup_files='false';
-#             publish_directory='$(PublishTempDirectory)';
-#             nuget_package_directory='$(NuGetArtifactDirectory)'
-#             # Lock the build.bat so it only builds this version in the release distribution
-#             generateBuildBat=$generateBuildBat
-#         }
-#         [string[]]$tasks = 'Pack'
-#         if ($Env:RunTests -ne 'false') {
-#             [string[]]$tasks = 'Pack','Publish'
-#         }
-#         #Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
-#         #exit !($psake.build_success)
-#       displayName: 'PSake Build, Pack, and Publish'
+    - powershell: |
+        Import-Module "$(BuildDirectory)/psake.psm1"
+        $generateBuildBat = if ($Env:ISRELEASE -eq 'true') { 'true' } else { 'false' }
+        $parameters = @{}
+        $properties = @{
+            backup_files='false';
+            publish_directory='$(PublishTempDirectory)';
+            nuget_package_directory='$(NuGetArtifactDirectory)'
+            # Lock the build.bat so it only builds this version in the release distribution
+            generateBuildBat=$generateBuildBat
+        }
+        [string[]]$tasks = 'Pack'
+        if ($Env:RunTests -ne 'false') {
+            [string[]]$tasks = 'Pack','Publish'
+        }
+        Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
+        exit !($psake.build_success)
+      displayName: 'PSake Build, Pack, and Publish'
 
-#     - template: 'build/azure-templates/show-all-environment-variables.yml'
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
         
-#     - powershell: |
-#         $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
-#         if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
-#         '$(PackageVersion)' | Out-File -FilePath "$dir/$(PackageVersionFileName)" -Force
-#         '$(FileVersion)' | Out-File -FilePath "$dir/$(FileVersionFileName)" -Force
-#         '$(Build.BuildNumber)' | Out-File -FilePath "$dir/$(BuildNumberFileName)" -Force
-#       displayName: 'Write Versions to Files'
+    - powershell: |
+        $dir = '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
+        '$(PackageVersion)' | Out-File -FilePath "$dir/$(PackageVersionFileName)" -Force
+        '$(FileVersion)' | Out-File -FilePath "$dir/$(FileVersionFileName)" -Force
+        '$(Build.BuildNumber)' | Out-File -FilePath "$dir/$(BuildNumberFileName)" -Force
+      displayName: 'Write Versions to Files'
 
-#     # If this is a release pipeline, copy the build.bat and Version.props files as version artifacts, which will 
-#     # overwrite the build.bat and Version.props files of the release.
-#     - task: CopyFiles@2
-#       displayName: 'Copy build.bat and Version.props Files to: /$(VersionArtifactName)'
-#       inputs:
-#         SourceFolder: '$(System.DefaultWorkingDirectory)'
-#         Contents: |
-#           build.bat
-#           Version.props
-#         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
-#       condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
+    # If this is a release pipeline, copy the build.bat and Version.props files as version artifacts, which will 
+    # overwrite the build.bat and Version.props files of the release.
+    - task: CopyFiles@2
+      displayName: 'Copy build.bat and Version.props Files to: /$(VersionArtifactName)'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)'
+        Contents: |
+          build.bat
+          Version.props
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+      condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
             
-#     - task: PublishPipelineArtifact@1
-#       displayName: 'Publish Artifact: $(VersionArtifactName)'
-#       inputs:
-#         targetPath: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
-#         artifact: '$(VersionArtifactName)'
-#         publishLocation: 'pipeline'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(VersionArtifactName)'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
+        artifact: '$(VersionArtifactName)'
+        publishLocation: 'pipeline'
     
-#     # Copy the .pdb files as build artifacts, which will 
-#     # later be used to push to the Azure Artifacts symbol server.
-#     - task: CopyFiles@2
-#       displayName: 'Copy .pdb Files to: /$(DebugArtifactName)'
-#       inputs:
-#         SourceFolder: '$(System.DefaultWorkingDirectory)'
-#         Contents: |
-#          **\**\bin\**\*.pdb
-#         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
+    # Copy the .pdb files as build artifacts, which will 
+    # later be used to push to the Azure Artifacts symbol server.
+    - task: CopyFiles@2
+      displayName: 'Copy .pdb Files to: /$(DebugArtifactName)'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)'
+        Contents: |
+         **\**\bin\**\*.pdb
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
         
-#     - task: PublishPipelineArtifact@1
-#       displayName: 'Publish Artifact: $(BinaryArtifactName)_netcoreapp3.1'
-#       inputs:
-#         targetPath: '$(PublishTempDirectory)\netcoreapp3.1'
-#         artifact: '$(BinaryArtifactName)_netcoreapp3.1'
-#         publishLocation: 'pipeline'
-#       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(BinaryArtifactName)_netcoreapp3.1'
+      inputs:
+        targetPath: '$(PublishTempDirectory)\netcoreapp3.1'
+        artifact: '$(BinaryArtifactName)_netcoreapp3.1'
+        publishLocation: 'pipeline'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
       
-#     - task: PublishPipelineArtifact@1
-#       displayName: 'Publish Artifact: $(BinaryArtifactName)_netcoreapp2.1'
-#       inputs:
-#         targetPath: '$(PublishTempDirectory)\netcoreapp2.1'
-#         artifact: '$(BinaryArtifactName)_netcoreapp2.1'
-#         publishLocation: 'pipeline'
-#       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(BinaryArtifactName)_netcoreapp2.1'
+      inputs:
+        targetPath: '$(PublishTempDirectory)\netcoreapp2.1'
+        artifact: '$(BinaryArtifactName)_netcoreapp2.1'
+        publishLocation: 'pipeline'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
       
-#     - task: PublishPipelineArtifact@1
-#       displayName: 'Publish Artifact: $(BinaryArtifactName)_net48'
-#       inputs:
-#         targetPath: '$(PublishTempDirectory)\net48'
-#         artifact: '$(BinaryArtifactName)_net48'
-#         publishLocation: 'pipeline'
-#       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(BinaryArtifactName)_net48'
+      inputs:
+        targetPath: '$(PublishTempDirectory)\net48'
+        artifact: '$(BinaryArtifactName)_net48'
+        publishLocation: 'pipeline'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
       
-#     - task: PublishPipelineArtifact@1
-#       displayName: 'Publish Artifact: $(NuGetArtifactName)'
-#       inputs:
-#         targetPath: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
-#         artifact: '$(NuGetArtifactName)'
-#         publishLocation: 'pipeline'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(NuGetArtifactName)'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+        artifact: '$(NuGetArtifactName)'
+        publishLocation: 'pipeline'
     
-#     - task: PublishPipelineArtifact@1
-#       displayName: 'Publish Artifact: $(DebugArtifactName)'
-#       inputs:
-#         targetPath: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
-#         artifact: '$(DebugArtifactName)'
-#         publishLocation: 'pipeline'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(DebugArtifactName)'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(DebugArtifactName)'
+        artifact: '$(DebugArtifactName)'
+        publishLocation: 'pipeline'
       
 - stage: Test_Stage
   displayName: 'Test Stage:'
