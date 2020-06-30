@@ -218,9 +218,17 @@ stages:
     condition: and(succeeded(), ne(variables['RunTests'], 'false'))
     strategy:
       matrix:
+        Windows:
+          osName: 'Windows'
+          imageName: 'windows-2019'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
         Linux:
           osName: 'Linux'
           imageName: 'ubuntu-16.04'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        macOS:
+          osName: 'macOS'
+          imageName: 'macOS-10.14'
           maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
     displayName: 'Test netcoreapp3.1 on'
     pool:
@@ -234,6 +242,50 @@ stages:
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 8
         maximumAllowedFailures: $(maximumAllowedFailures)
+
+  - job: Test_netcoreapp2_2
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    strategy:
+      matrix:
+        Windows:
+          osName: 'Windows'
+          imageName: 'windows-2019'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        Linux:
+          osName: 'Linux'
+          imageName: 'ubuntu-16.04'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        macOS:
+          osName: 'macOS'
+          imageName: 'macOS-10.14'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+    displayName: 'Test netcoreapp2.1 on'
+    pool:
+      vmImage: $(imageName)
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
+      parameters:
+        osName: $(osName)
+        framework: 'netcoreapp2.1'
+        testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        maximumParallelJobs: 8
+        maximumAllowedFailures: $(maximumAllowedFailures)
+
+  - job: Test_net48_Windows
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    displayName: 'Test net48 on Windows'
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
+      parameters:
+        osName: 'Windows'
+        framework: 'net48'
+        testResultsArtifactName: '$(TestResultsArtifactName)'
+        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
+        maximumParallelJobs: 9
+        maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
 
 - stage: Publish_Stage
   displayName: 'Publish Stage:'
