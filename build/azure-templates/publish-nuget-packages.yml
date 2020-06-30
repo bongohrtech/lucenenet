@@ -56,7 +56,7 @@ steps:
   displayName: 'NuGet push'
   inputs:
     command: push
-    packagesToPush: '${{ parameters.nugetArtifactName }}/**/*.nupkg;!${{ parameters.nugetArtifactName }}/**/*.symbols.nupkg'
+    packagesToPush: '${{ parameters.nugetArtifactName }}/*.nupkg;!${{ parameters.nugetArtifactName }}/*.symbols.nupkg'
     publishVstsFeed: '/${{ parameters.artifactFeedID }}'
     allowPackageConflicts: true
 
