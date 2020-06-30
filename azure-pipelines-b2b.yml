@@ -147,7 +147,7 @@ stages:
           build.bat
           Version.props
         TargetFolder: '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)'
-      condition: and(succeeded(), eq(variables['BuildConfiguration'], 'Release'))
+      condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
             
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(VersionArtifactName)'
