@@ -317,11 +317,11 @@ stages:
     - checkout: none # self represents the repo where the initial Pipelines YAML file was found
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
-    - task:  DownloadPipelineArtifact@2
+    - task: DownloadPipelineArtifact@0
       displayName: 'Download Build Artifacts: $(VersionArtifactName)'
       inputs:
         artifactName: '$(VersionArtifactName)'
-        targetPath: '$(Build.ArtifactStagingDirectory)'
+        targetPath: version
 
       # NOTE: We are setting Build.BuildNumber here to the NuGet package version to work around the limitation that
       # the version cannot be passed to the Index Sources & Publish Symbols task.
@@ -352,18 +352,19 @@ stages:
     - checkout: none # self represents the repo where the initial Pipelines YAML file was found
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
+
     - task: DownloadPipelineArtifact@0
       displayName: 'Download Build Artifacts: $(NuGetArtifactName)'
       inputs:
         artifactName: '$(NuGetArtifactName)'
-        path: '$(Build.ArtifactStagingDirectory)'
+        targetPath: nuget
 
 
     - task: DownloadPipelineArtifact@0
       displayName: 'Download Build Artifacts: $(VersionArtifactName)'
       inputs:
         artifactName: '$(VersionArtifactName)'
-        path: '$(Build.ArtifactStagingDirectory)'
+        targetPath: version
 
     - template: 'build/azure-templates/show-all-files.yml' # Uncomment for debugging
 
