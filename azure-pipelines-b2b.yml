@@ -328,8 +328,6 @@ stages:
         Get-ChildItem -Path $(System.DefaultWorkingDirectory)
     - powershell: | 
         Get-ChildItem -Path version
-    - powershell: | 
-        Get-ChildItem -Path nuget
 
       # NOTE: We are setting Build.BuildNumber here to the NuGet package version to work around the limitation that
       # the version cannot be passed to the Index Sources & Publish Symbols task.
@@ -373,6 +371,13 @@ stages:
       inputs:
         artifactName: '$(VersionArtifactName)'
         targetPath: version
+        
+    - powershell: | 
+        Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+    - powershell: | 
+        Get-ChildItem -Path version
+    - powershell: | 
+        Get-ChildItem -Path nuget
 
     - template: 'build/azure-templates/show-all-files.yml' # Uncomment for debugging
 
