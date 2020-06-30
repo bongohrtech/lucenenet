@@ -167,7 +167,7 @@ stages:
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
         targetPath: '$(PublishTempDirectory)'
-        artifact: '$(BinaryArtifactName)/netcoreapp3.1'
+        artifact: '$(BinaryArtifactName)_netcoreapp3.1'
         publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
       
@@ -175,7 +175,7 @@ stages:
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
         targetPath: '$(PublishTempDirectory)'
-        artifact: '$(BinaryArtifactName)/netcoreapp2.1'
+        artifact: '$(BinaryArtifactName)_netcoreapp2.1'
         publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
       
@@ -183,7 +183,7 @@ stages:
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
       inputs:
         targetPath: '$(PublishTempDirectory)'
-        artifact: '$(BinaryArtifactName)/net48'
+        artifact: '$(BinaryArtifactName)_net48'
         publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
       
