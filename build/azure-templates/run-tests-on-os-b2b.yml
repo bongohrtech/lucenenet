@@ -61,6 +61,13 @@ steps:
     artifactName: '${{ parameters.binaryArtifactName }}_${{ parameters.framework }}'
     path: '$(System.DefaultWorkingDirectory)\${{ parameters.framework }}'
 
+- powershell: | 
+    Get-ChildItem -Path $(System.DefaultWorkingDirectory)
+    displayName: 'Echo Path'
+- powershell: | 
+    Get-ChildItem -Path $(System.DefaultWorkingDirectory)\${{ parameters.framework }}
+    displayName: 'Echo Path'
+
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk 3.1.301'
   inputs:
