@@ -210,7 +210,7 @@ stages:
       displayName: 'Download Build Artifacts: $(NuGetArtifactName)'
       inputs:
         artifactName: '$(NuGetArtifactName)'
-        path: nuget
+        targetPath: nuget
 
 
     - task: DownloadPipelineArtifact@0
