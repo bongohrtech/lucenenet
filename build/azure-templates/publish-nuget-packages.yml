@@ -41,16 +41,16 @@ steps:
   displayName: 'Validate Template Parameters'
 
 - task: DownloadPipelineArtifact@0
-    displayName: 'Download Build Artifacts: $(parameters.nugetArtifactName)'
-    inputs:
-        artifactName: $(parameters.nugetArtifactName)
-        targetPath: nuget
+  displayName: 'Download Build Artifacts: $(parameters.nugetArtifactName)'
+  inputs:
+    artifactName: $(parameters.nugetArtifactName)
+    targetPath: nuget
 
 - task: DownloadPipelineArtifact@0
-    displayName: 'Download Build Artifacts: $(parameters.debugArtifactName)'
-    inputs:
-        artifactName: $(parameters.debugArtifactName)
-        targetPath: debug
+  displayName: 'Download Build Artifacts: $(parameters.debugArtifactName)'
+  inputs:
+    artifactName: $(parameters.debugArtifactName)
+    targetPath: debug
 
 - task: NuGetCommand@2
   displayName: 'NuGet push'
