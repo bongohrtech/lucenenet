@@ -172,12 +172,34 @@ stages:
         
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(BinaryArtifactName)'
+      variables:
+        framework:  'netcoreapp3.1' 
       inputs:
         targetPath: '$(PublishTempDirectory)'
-        artifact: '$(BinaryArtifactName)'
+        artifact: '$(BinaryArtifactName)/$(framework)'
         publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-
+      
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(BinaryArtifactName)'
+      variables:
+        framework:  'netcoreapp2.1' 
+      inputs:
+        targetPath: '$(PublishTempDirectory)'
+        artifact: '$(BinaryArtifactName)/$(framework)'
+        publishLocation: 'pipeline'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+      
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(BinaryArtifactName)'
+      variables:
+        framework:  'net48' 
+      inputs:
+        targetPath: '$(PublishTempDirectory)'
+        artifact: '$(BinaryArtifactName)/$(framework)'
+        publishLocation: 'pipeline'
+      condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+      
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Artifact: $(NuGetArtifactName)'
       inputs:
