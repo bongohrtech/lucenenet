@@ -216,7 +216,7 @@ stages:
     pool:
       vmImage: $(imageName)
     steps:
-    - template: 'build/azure-templates/run-tests-on-os.yml'
+    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
       parameters:
         osName: $(osName)
         framework: 'netcoreapp3.1'
@@ -245,7 +245,7 @@ stages:
     pool:
       vmImage: $(imageName)
     steps:
-    - template: 'build/azure-templates/run-tests-on-os.yml'
+    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
       parameters:
         osName: $(osName)
         framework: 'netcoreapp2.1'
@@ -260,7 +260,7 @@ stages:
     pool:
       vmImage: 'windows-2019'
     steps:
-    - template: 'build/azure-templates/run-tests-on-os.yml'
+    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
       parameters:
         osName: 'Windows'
         framework: 'net48'
