@@ -49,8 +49,8 @@ steps:
 - task: DownloadPipelineArtifact@0
     displayName: 'Download Build Artifacts: $(parameters.debugArtifactName)'
     inputs:
-    artifactName: $(parameters.debugArtifactName)
-    targetPath: debug
+        artifactName: $(parameters.debugArtifactName)
+        targetPath: debug
 
 - task: NuGetCommand@2
   displayName: 'NuGet push'
