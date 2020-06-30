@@ -281,6 +281,7 @@ stages:
       vmImage: 'windows-2019'
 
     steps:
+    - checkout: none # self represents the repo where the initial Pipelines YAML file was found
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
     - task: DownloadBuildArtifacts@0
@@ -315,6 +316,7 @@ stages:
       vmImage: 'windows-2019'
 
     steps:
+    - checkout: none # self represents the repo where the initial Pipelines YAML file was found
     - template: 'build/azure-templates/show-all-environment-variables.yml'
 
     - task: DownloadPipelineArtifact@0
