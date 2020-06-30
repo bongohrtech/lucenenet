@@ -58,7 +58,7 @@ steps:
 - task: DownloadPipelineArtifact@0
   displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }}'
   inputs:
-    artifactName: '${{ parameters.binaryArtifactName }}/${{ parameters.framework }}'
+    artifactName: '${{ parameters.binaryArtifactName }}\${{ parameters.framework }}'
     path: '$(System.DefaultWorkingDirectory)'
 
 - task: UseDotNet@2
