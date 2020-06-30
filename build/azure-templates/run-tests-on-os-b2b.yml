@@ -56,7 +56,7 @@ steps:
 
 
 - task:  DownloadPipelineArtifact@2
-  displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }} to $(System.DefaultWorkingDirectory)\$(framework)'
+  displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }} to $(System.DefaultWorkingDirectory)\$(parameters.framework)'
   inputs:
     artifactName: '${{ parameters.binaryArtifactName }}_${{ parameters.framework }}'
     targetPath: $(Build.DefaultWorkingDirectory)\${{ parameters.framework }}

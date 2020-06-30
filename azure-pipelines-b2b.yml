@@ -122,7 +122,7 @@ stages:
             [string[]]$tasks = 'Pack','Publish'
         }
         #Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
-        exit !($psake.build_success)
+        #exit !($psake.build_success)
       displayName: 'PSake Build, Pack, and Publish'
 
     - template: 'build/azure-templates/show-all-environment-variables.yml'
@@ -134,6 +134,7 @@ stages:
         '$(FileVersion)' | Out-File -FilePath "$dir/$(FileVersionFileName)" -Force
         '$(Build.BuildNumber)' | Out-File -FilePath "$dir/$(BuildNumberFileName)" -Force
       displayName: 'Write Versions to Files'
+
     # If this is a release pipeline, copy the build.bat and Version.props files as version artifacts, which will 
     # overwrite the build.bat and Version.props files of the release.
     - task: CopyFiles@2
