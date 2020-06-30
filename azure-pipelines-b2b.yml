@@ -121,9 +121,10 @@ stages:
         if ($Env:RunTests -ne 'false') {
             [string[]]$tasks = 'Pack','Publish'
         }
-        Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
+        #Invoke-psake $(BuildDirectory)/build.ps1 -Task $tasks -properties $properties -parameters $parameters
         exit !($psake.build_success)
       displayName: 'PSake Build, Pack, and Publish'
+
     - template: 'build/azure-templates/show-all-environment-variables.yml'
         
     - powershell: |
