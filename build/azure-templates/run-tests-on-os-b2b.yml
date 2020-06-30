@@ -32,9 +32,6 @@ parameters:
   maximumAllowedFailures: 0
   where: '' # A test filter expression, as defined by dotnet vstest
   
-variables:
-- name: PublishDirectory # Test binaries directory
-  value: '$(Build.DefaultWorkingDirectory)/$(framework)'
 steps:
 - checkout: none # self represents the repo where the initial Pipelines YAML file was found
 
@@ -62,15 +59,13 @@ steps:
   displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }} to $(System.DefaultWorkingDirectory)/${{ parameters.framework }}'
   inputs:
     artifactName: '${{ parameters.binaryArtifactName }}_${{ parameters.framework }}'
-    path: $(PublishDirectory)
+    path: '$(Build.DefaultWorkingDirectory)/$(framework)'
 
 - powershell: | 
-    Get-ChildItem -Path $(PublishDirectory)
-  displayName: 'Echo Path'
+    Get-ChildItem -Path $(Build.DefaultWorkingDirectory)/$(framework)
 
 - powershell: | 
-    Get-ChildItem -Path $(PublishDirectory)\${{ parameters.framework }}
-  displayName: 'Echo Path'
+    Get-ChildItem -Path $(Build.DefaultWorkingDirectory)/$(framework)
 
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk 3.1.301'
