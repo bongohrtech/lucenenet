@@ -59,7 +59,7 @@ steps:
   displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }}'
   inputs:
     artifactName: '${{ parameters.binaryArtifactName }}_${{ parameters.framework }}'
-    path: '$(System.DefaultWorkingDirectory)'
+    path: '$(System.DefaultWorkingDirectory)\${{ parameters.framework }}'
 
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk 3.1.301'
