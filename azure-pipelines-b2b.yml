@@ -96,9 +96,10 @@ stages:
     - checkout: self # self represents the repo where the initial Pipelines YAML file was found
       fetchDepth: 1  # the depth of commits to ask Git to fetch
 
-    - task: UseDotNet@2
-      displayName: 'Use .NET Core sdk 3.1.100'
-      inputs:
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk 3.1.301'
+  inputs:
+    version: 3.1.301
         version: 3.1.100
     
     - task: Cache@2
@@ -192,11 +193,11 @@ stages:
         artifact: '$(DebugArtifactName)'
         publishLocation: 'pipeline'
       condition: and(succeeded(), ne(variables['BuildConfiguration'], 'Release'))
-
+      
 - stage: Test_Stage
   displayName: 'Test Stage:'
   jobs:
-  - job: Windows
+  - job: Test_netcoreapp3_1
     condition: and(succeeded(), ne(variables['RunTests'], 'false'))
     strategy:
       matrix:
@@ -204,76 +205,10 @@ stages:
           osName: 'Windows'
           imageName: 'windows-2019'
           maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-    displayName: 'Test netcoreapp3.1 on'
-    pool:
-      vmImage: $(imageName)
-    steps:
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
-      parameters:
-        osName: $(osName)
-        framework: 'netcoreapp3.1'
-        testResultsArtifactName: '$(TestResultsArtifactName)'
-        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 8
-        maximumAllowedFailures: $(maximumAllowedFailures)
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
-      parameters:
-        osName: $(osName)
-        framework: 'netcoreapp2.2'
-        testResultsArtifactName: '$(TestResultsArtifactName)'
-        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 8
-        maximumAllowedFailures: $(maximumAllowedFailures)
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
-      parameters:
-        osName: $(osName)
-        framework: 'net48'
-        testResultsArtifactName: '$(TestResultsArtifactName)'
-        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 8
-        maximumAllowedFailures: $(maximumAllowedFailures)
-
-  - job: Linux
-    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-    strategy:
-      matrix:
         Linux:
           osName: 'Linux'
           imageName: 'ubuntu-16.04'
           maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
-    displayName: 'Test netcoreapp3.1 on'
-    pool:
-      vmImage: $(imageName)
-    steps:
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
-      parameters:
-        osName: $(osName)
-        framework: 'netcoreapp3.1'
-        testResultsArtifactName: '$(TestResultsArtifactName)'
-        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 8
-        maximumAllowedFailures: $(maximumAllowedFailures)
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
-      parameters:
-        osName: $(osName)
-        framework: 'netcoreapp2.2'
-        testResultsArtifactName: '$(TestResultsArtifactName)'
-        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 8
-        maximumAllowedFailures: $(maximumAllowedFailures)
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
-      parameters:
-        osName: $(osName)
-        framework: 'net48'
-        testResultsArtifactName: '$(TestResultsArtifactName)'
-        publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 8
-        maximumAllowedFailures: $(maximumAllowedFailures)
-
-  - job: macOS
-    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
-    strategy:
-      matrix:
         macOS:
           osName: 'macOS'
           imageName: 'macOS-10.14'
@@ -282,7 +217,7 @@ stages:
     pool:
       vmImage: $(imageName)
     steps:
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
+    - template: 'build/azure-templates/run-tests-on-os.yml'
       parameters:
         osName: $(osName)
         framework: 'netcoreapp3.1'
@@ -290,21 +225,188 @@ stages:
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 8
         maximumAllowedFailures: $(maximumAllowedFailures)
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
+
+  - job: Test_netcoreapp2_2
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    strategy:
+      matrix:
+        Windows:
+          osName: 'Windows'
+          imageName: 'windows-2019'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        Linux:
+          osName: 'Linux'
+          imageName: 'ubuntu-16.04'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+        macOS:
+          osName: 'macOS'
+          imageName: 'macOS-10.14'
+          maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+    displayName: 'Test netcoreapp2.1 on'
+    pool:
+      vmImage: $(imageName)
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os.yml'
       parameters:
         osName: $(osName)
-        framework: 'netcoreapp2.2'
+        framework: 'netcoreapp2.1'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
         maximumParallelJobs: 8
         maximumAllowedFailures: $(maximumAllowedFailures)
-    - template: 'build/azure-templates/run-tests-on-os-b2b.yml'
+
+  - job: Test_net48_Windows
+    condition: and(succeeded(), ne(variables['RunTests'], 'false'))
+    displayName: 'Test net48 on Windows'
+    pool:
+      vmImage: 'windows-2019'
+    steps:
+    - template: 'build/azure-templates/run-tests-on-os.yml'
       parameters:
-        osName: $(osName)
+        osName: 'Windows'
         framework: 'net48'
         testResultsArtifactName: '$(TestResultsArtifactName)'
         publishedArtifactZipFileName: '$(PublishedArtifactZipFileName)'
-        maximumParallelJobs: 8
-        maximumAllowedFailures: $(maximumAllowedFailures)
+        maximumParallelJobs: 9
+        maximumAllowedFailures: 4 # Maximum allowed failures for a successful build
+
+- stage: Publish_Stage
+  displayName: 'Publish Stage:'
+  jobs:
+
+  # Optional job to push to Azure Artifact feed. Just pass in
+  # the GUID of the artifact feed as ArtifactFeedID to enable.
+  - job: Publish_Azure_Artifacts
+    condition: and(succeeded(), ne(variables['ArtifactFeedID'], ''))
+    pool:
+      vmImage: 'windows-2019'
+
+    steps:
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download Build Artifacts: $(VersionArtifactName)'
+      inputs:
+        artifactName: '$(VersionArtifactName)'
+        downloadPath: '$(Build.ArtifactStagingDirectory)'
+
+      # NOTE: We are setting Build.BuildNumber here to the NuGet package version to work around the limitation that
+      # the version cannot be passed to the Index Sources & Publish Symbols task.
+    - powershell: |
+        $version = Get-Content '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)/$(PackageVersionFileName)' -Raw
+        Write-Host "##vso[task.setvariable variable=PackageVersion;]$version"
+        Write-Host "##vso[build.updatebuildnumber]$version"
+      displayName: 'Read PackageVersion from File to Build.BuildNumber'
+
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+    - template: 'build/azure-templates/publish-nuget-packages.yml'
+      parameters:
+        artifactFeedID: '$(ArtifactFeedID)'
+        nugetArtifactName: '$(NuGetArtifactName)'
+        debugArtifactName: '$(DebugArtifactName)'
+
+- stage: Release_Stage
+  displayName: 'Release Stage:'
+  jobs:
+  - job: Release
+    condition: and(succeeded(), eq(variables['IsRelease'], 'true'))
+    displayName: 'Build Release Artifacts for [VOTE]'
+    pool:
+      vmImage: 'windows-2019'
+
+    steps:
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+    - task: DownloadPipelineArtifact@0
+      displayName: 'Download Build Artifacts: $(NuGetArtifactName)'
+      inputs:
+        artifactName: '$(NuGetArtifactName)'
+        path: '$(Build.ArtifactStagingDirectory)'
+
+
+    - task: DownloadPipelineArtifact@0
+      displayName: 'Download Build Artifacts: $(VersionArtifactName)'
+      inputs:
+        artifactName: '$(VersionArtifactName)'
+        path: '$(Build.ArtifactStagingDirectory)'
+
+    - template: 'build/azure-templates/show-all-files.yml' # Uncomment for debugging
+
+      # NOTE: We are setting Build.BuildNumber here to the NuGet package version to work around the limitation that
+      # the version cannot be passed to the Index Sources & Publish Symbols task.
+    - powershell: |
+        $version = Get-Content '$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)/$(PackageVersionFileName)' -Raw
+        $vcsLabel = 'Lucene.Net_' + $version.Replace('.', '_').Replace('-', '_')
+        Write-Host "##vso[task.setvariable variable=VCSLabel;]$vcsLabel"
+        Write-Host "##vso[task.setvariable variable=PackageVersion;]$version"
+        Write-Host "##vso[build.updatebuildnumber]$version"
+      displayName: 'Build VCS Label and Rehydrate Version Variables'
+
+    - powershell: |
+        $files = 'build.bat','Version.props'
+        foreach ($file in $files) {
+            Copy-Item -Path "$(Build.ArtifactStagingDirectory)/$(VersionArtifactName)/$file" -Destination "$(Build.SourcesDirectory)/$file" -Force -ErrorAction Continue
+        }
+      displayName: 'Update build.bat and Version.props to build only version $(PackageVersion)'
+
+    - template: 'build/azure-templates/show-all-environment-variables.yml'
+
+    - task: CopyFiles@2
+      displayName: 'Copy Source Code Files to: $(Build.ArtifactStagingDirectory)/srctemp'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)'
+        Contents: |
+         **
+         !.git/**/*
+         !branding/**/*
+         !release/**/*
+         !src/**/bin/**/*
+         !src/**/obj/**/*
+         branding/logo/lucene-net-icon-128x128.png
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/srctemp'
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive Source Code Files'
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/srctemp'
+        includeRootFolder: false
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)/Apache-Lucene.Net-$(PackageVersion).src.zip'
+
+    - task: CopyFiles@2
+      displayName: 'Copy License/Notice Files to: $(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)'
+        Contents: |
+         LICENSE.txt
+         NOTICE.txt
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+
+    - task: ArchiveFiles@2
+      displayName: 'Archive Binary Files'
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/$(NuGetArtifactName)'
+        includeRootFolder: false
+        archiveFile: '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)/Apache-Lucene.Net-$(PackageVersion).bin.zip'
+
+    - powershell: |
+        $dir = '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)'
+        if (!(Test-Path $dir)) { New-Item -ItemType Directory -Path "$dir" -Force }
+        $nl = [Environment]::NewLine
+        "TODO: Review: http://www.apache.org/legal/release-policy.html" + $nl + `
+        "TODO: Tag Repository" + $nl + `
+        "  commit: $(Build.SourceVersion)" + $nl + `
+        "  tag: $(VCSLabel)" + $nl + `
+        "TODO: Sign release artifacts (see https://www.apache.org/dev/release-signing.html)" + $nl + `
+        "TODO: Push release artifacts to dev (https://dist.apache.org/repos/dist/dev/lucenenet/)" + $nl + `
+        "TODO: Start release [VOTE] (see https://www.apache.org/foundation/voting.html)" + $nl | Out-File -FilePath "$dir/RELEASE-TODO.txt" -Force
+      displayName: 'Write RELEASE-TODO.txt'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Artifact: $(ReleaseArtifactName)'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/$(ReleaseArtifactName)'
+        artifact:  '$(ReleaseArtifactName)'
+        publishLocation: 'pipeline'
 
 # LUCENENET TODO: Write VCS Label (git tag) automatically
