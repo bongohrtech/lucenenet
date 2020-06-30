@@ -59,7 +59,7 @@ steps:
   displayName: 'Download Build Artifacts: ${{ parameters.binaryArtifactName }} to $(System.DefaultWorkingDirectory)\$(framework)'
   inputs:
     artifactName: '${{ parameters.binaryArtifactName }}_${{ parameters.framework }}'
-    targetPath: $(Build.DefaultWorkingDirectory)\$(framework)
+    targetPath: $(Build.DefaultWorkingDirectory)\${{ parameters.framework }}
 
 - powershell: | 
     Get-ChildItem -Path $(System.DefaultWorkingDirectory)
